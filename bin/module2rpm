@@ -1,2 +1,16 @@
-#!/usr/bin/env perl6
-use Module2Rpm;
+#!/usr/bin/env raku
+
+#| Prints help
+multi sub MAIN() {
+
+}
+
+#| Downloads, creates spec files and uploads them to OBS for all modules given in a file.
+multi sub MAIN(:$metalist) {
+
+}
+
+#| Downloads, creates spec file and uploads to OBS a given module.
+multi sub MAIN(:$module) {
+
+}
