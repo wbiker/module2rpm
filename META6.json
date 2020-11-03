@@ -12,9 +12,11 @@
     "Module2Rpm::Download::Curl": "lib/Module2Rpm/Download/Curl.pm6",
     "Module2Rpm::Download::Git": "lib/Module2Rpm/Download/Git.pm6",
     "Module2Rpm::Metadata": "lib/Module2Rpm/Metadata.pm6",
+    "Module2Rpm::Package": "lib/Module2Rpm/Package.pm6",
     "Module2Rpm::Role::Archive": "lib/Module2Rpm/Role/Archive.pm6",
     "Module2Rpm::Role::Download": "lib/Module2Rpm/Role/Download.pm6",
-    "Module2Rpm::Spec": "lib/Module2Rpm/Spec.pm6"
+    "Module2Rpm::Spec": "lib/Module2Rpm/Spec.pm6",
+    "Module2Rpm::Upload::OBS": "lib/Module2Rpm/Upload/OBS.pm6"
   },
   "resources": [],
   "license": "Apache License 2.0",
