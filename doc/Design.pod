@@ -1,0 +1,60 @@
+=begin pod
+
+=head1 Module2Rpm
+
+=head2 Design
+
+This tool is indented to release the developer of the burden to create a spec file for each module by itself and upload them to the Open Build Service.
+
+There are two ways to get RPMs from modules:
+
+=item module2rpm --module=<module name>
+=item module2rpm --metafile=<file path>
+
+=head3 --module=<module name>
+
+Called with --module this tool downloads 
+=code 
+https://raw.githubusercontent.com/ugexe/Perl6-ecosystems/master/cpan1.json
+https://raw.githubusercontent.com/ugexe/Perl6-ecosystems/master/p6c1.json
+
+and looks for <module name>. Once found, the module is downloaded, the spec file is written with the meta data found in the json and then uploaded to OBS.
+
+=head3 --metafile=<file path>
+
+Expect a file with URLs to the meta information (as json) for all modules which should be uploaded to OBS. All metadata are downloaded and used to create the appropriate spec files. Once done they are uploaded to OBS together with the downloaded source files.
+
+=head3 bin/module2rpm
+
+This is the entry point to the application. All used classes are instantiated and injected here. All configuration are set here and passed to the classes in an Module2Rpm::Config object. Configuration settings so far:
+
+=item Raku ecosystem metadata json urls (cpan1.json and p6c1.json).
+=item Prefix used for module names (raku-).
+=item OBS project name used to upload to.
+=item OBS credentials used for uploaded.
+
+=head2 Classes
+
+Following classes exists:
+
+=head3 Module2Rpm::Archive::Tar
+
+This class encapsulate the code to compress/expand archives. It implements the Module2Rpm::Role::Archive role.
+
+=head3 Module2Rpm::Download::Curl
+
+Class that uses Curl to download stuff from the internet. It implements the Module2Rpm::Role::Download role.
+
+=head3 Module2Rpm::Download::Git
+
+Class to clone Git repositories. It implements the Module2Rpm::Role::Download role.
+
+=head3 Module2Rpm::Upload::OBS
+
+Class used to upload module source and spec files to OBS. It needs credentials to be able to do so.
+
+=head3 Module2Rpm::Spec
+
+Class to store the spec data and write the spec file. For testing purpose it might be better to just give back the spec file content and write the file somewhere else.
+
+=end pod
