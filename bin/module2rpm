@@ -7,10 +7,19 @@ multi sub MAIN() {
 
 #| Downloads, creates spec files and uploads them to OBS for all modules given in a file.
 multi sub MAIN(:$metalist) {
-
+    # Go through the file line by line.
+    # Each line is handled as URL and expect to retrieve a json with meta information.
+    # Download module source code.
+    # Write Spec file.
+    # Upload to OBS.
+    # Repeat.
 }
 
 #| Downloads, creates spec file and uploads to OBS a given module.
 multi sub MAIN(:$module) {
-
+    # Download json metadata files.
+    # Look for <module> in the metadata.
+    # Download module source code.
+    # Write spec file.
+    # Upload to OBS.
 }
