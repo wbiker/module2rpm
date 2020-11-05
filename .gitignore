@@ -7,3 +7,5 @@ lib/.precomp
 
 .idea/
 module2rpm.iml
+doc/*.txt
+doc/*.html
