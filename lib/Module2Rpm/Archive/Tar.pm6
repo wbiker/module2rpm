@@ -5,8 +5,7 @@ class Module2Rpm::Archive::Tar does Module2Rpm::Role::Archive {
 
     }
 
-    method Compress(IO::Path $path, Str name) {
-
+    method Compress(IO::Path $path, Str $name) {
     }
 
     method List(IO::Path $path --> Array) {
