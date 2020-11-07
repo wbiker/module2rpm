@@ -4,7 +4,9 @@
   "version": "0.1",
   "perl": "6.*",
   "auth": "Write me!",
-  "depends": [],
+  "depends": [
+    "File::Temp"
+  ],
   "build-depends": [],
   "test-depends": [],
   "provides": {
