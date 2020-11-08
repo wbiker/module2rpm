@@ -3,6 +3,16 @@ use File::Temp;
 
 use Module2Rpm::Archive::Tar;
 
+my constant ARCHIVE-ROOT = "archive";
+my constant ARCHIVE-SUBDIR = "archive/dir";
+my constant ARCHIVE-SUBDIR2 = "archive/dir1";
+my constant ARCHIVE-SUBDIR-FILE = "archive/dir/file";
+my constant ARCHIVE-SUBDIR2-FILE = "archive/dir1/file1";
+my constant ARCHIVE-ROOT-FILE = "archive/file2";
+
+my @test-dirs = ARCHIVE-ROOT, ARCHIVE-SUBDIR, ARCHIVE-SUBDIR2;
+my @test-files = ARCHIVE-SUBDIR-FILE, ARCHIVE-SUBDIR2-FILE, ARCHIVE-ROOT-FILE;
+
 my $tar-file-name = "testfile.tar.xz";
 my $tar = Module2Rpm::Archive::Tar.new;
 
@@ -24,26 +34,25 @@ my $tar = Module2Rpm::Archive::Tar.new;
     $tar-file.copy($extract-tar-path);
     $tar.Extract($extract-tar-path);
 
-    ok $extract-dir.add("archive").e, "Extracted root folder found";
-    ok $extract-dir.add("archive/dir").e, "Extracted subfolder found";
-    ok $extract-dir.add("archive/dir1").e, "Extracted second subfolder found";
-    ok $extract-dir.add("archive/dir/file").e, "Extracted file in subfolder found";
-    ok $extract-dir.add("archive/dir1/file1").e, "Extracted second file in subfolder found";
-    ok $extract-dir.add("archive/file2").e, "Extracted file found";
+    ok $extract-dir.add(ARCHIVE-ROOT).e, "Extracted root folder found";
+    ok $extract-dir.add(ARCHIVE-SUBDIR).e, "Extracted subfolder found";
+    ok $extract-dir.add(ARCHIVE-SUBDIR2).e, "Extracted second subfolder found";
+    ok $extract-dir.add(ARCHIVE-SUBDIR-FILE).e, "Extracted file in subfolder found";
+    ok $extract-dir.add(ARCHIVE-SUBDIR2-FILE).e, "Extracted second file in subfolder found";
+    ok $extract-dir.add(ARCHIVE-ROOT-FILE).e, "Extracted file found";
 }
 
 done-testing;
 
 sub create-test-structure(IO::Path $dir --> IO::Path) {
-    my $archive-dir = $dir.add('archive');
-    $archive-dir.mkdir;
-    $archive-dir.add('dir').mkdir;
-    $archive-dir.add('dir1').mkdir;
-    $archive-dir.add('dir/file').spurt("dummy");
-    $archive-dir.add('dir1/file1').spurt("dummy");
-    $archive-dir.add('file2').spurt("dummy");
+    for @test-dirs -> $dir-to-create {
+        $dir.add($dir-to-create).mkdir;
+    }
+    for @test-files -> $file {
+        $dir.add($file).spurt("dummy");
+    }
 
-    return $archive-dir;
+    return $dir.add(ARCHIVE-ROOT);
 }
 
 sub create-tar-archive-from-directory(IO::Path $dir, Str $tar-file-name --> IO::Path) {
