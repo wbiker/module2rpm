@@ -9,3 +9,4 @@ lib/.precomp
 module2rpm.iml
 doc/*.txt
 doc/*.html
+packages/
