@@ -1,57 +1,70 @@
 use Module2Rpm::Metadata;
 
 class Module2Rpm::Spec {
+    has $.metadata is required;
     has $.requires = 'perl6 >= 2016.12';
     has $.build-requires = 'rakudo >= 2017.04.2';
 
-    method get-name(:$meta --> Str) {
-        die "Metadata does not provide module name!" unless $meta<name>;
-
-        return "perl6-{ $meta<name>.subst: /'::'/, '-', :g }"
+    method get-source-url( --> Str) {
+        return $!metadata<source-url> || $!metadata<support><source>;
     }
 
-    method get-version(:$meta) {
-        die "No version found in metadata" unless $meta<version>;
+    #| Returns the module name changed to perl6-<module name with '::' replaced by '-'>.
+    method get-name( --> Str) {
+        die "Metadata does not provide module name!" unless $!metadata<name>;
 
-        return $meta<version> eq '*' ?? '0.1' !! $meta<version>;
+        return "perl6-{ $!metadata<name>.subst: /'::'/, '-', :g }"
     }
 
-    method provides(:$meta!) {
-        die "Metadata does not provide a module name" unless $meta<name>;
+    #| Returns the version found in the metadata. For '*' versions 0.1 is returned.
+    method get-version() {
+        die "No version found in metadata" unless $!metadata<version>;
 
-        return ($meta<name>, |$meta<provides>.keys).unique.sort.map({"Provides:       perl6($_)"}).join("\n");
+        return $!metadata<version> eq '*' ?? '0.1' !! $!metadata<version>;
     }
 
-    method requires(:$meta!) is export {
+    #| Returns a list of the provided files with the pattern:
+    #| Provides:       perl6(<name of the provided file>)
+    method provides() {
+        die "Metadata does not provide a module name" unless $!metadata<name>;
+
+        return ($!metadata<name>, |$!metadata<provides>.keys).unique.sort.map({"Provides:       perl6($_)"}).join("\n");
+    }
+
+    #| Returns a list of the required modules with the pattern:
+    #| Requires:       <name of the requirement>
+    method requires() {
         my @requires = $!requires;
 
-        if $meta<depends> {
-            @requires.append: flat $meta<depends>.map({ self.map-dependency($_) })
-                    if $meta<depends> ~~ Positional;
-            @requires.append: flat $meta<depends><runtime><requires>.map({ self.map-dependency($_) })
-                    if $meta<depends> ~~ Associative;
+        if $!metadata<depends> {
+            @requires.append: flat $!metadata<depends>.map({ self.map-dependency($_) })
+                    if $!metadata<depends> ~~ Positional;
+            @requires.append: flat $!metadata<depends><runtime><requires>.map({ self.map-dependency($_) })
+                    if $!metadata<depends> ~~ Associative;
         }
 
         return @requires.map({"Requires:       $_"}).join("\n");
     }
 
-    method build-requires(:$meta!) is export {
+    #| Returns a list of the build requirements with the pattern:
+    #| BuildRequires:  <name of the build requirement>
+    method build-requires()  {
         my @requires = $!build-requires;
 
-        if $meta<depends> {
-            @requires.append: flat $meta<depends>.map({ self.map-dependency($_) })
-                    if $meta<depends> ~~ Positional;
-            @requires.append: flat $meta<depends><build><requires>.map({ self.map-dependency($_) })
-                    if $meta<depends> ~~ Associative;
+        if $!metadata<depends> {
+            @requires.append: flat $!metadata<depends>.map({ self.map-dependency($_) })
+                    if $!metadata<depends> ~~ Positional;
+            @requires.append: flat $!metadata<depends><build><requires>.map({ self.map-dependency($_) })
+                    if $!metadata<depends> ~~ Associative;
         }
 
-        @requires.append: flat $meta<build-depends>.map({ self.map-dependency($_) })
-                if $meta<build-depends>;
-        @requires.push: 'Distribution::Builder' ~ $meta<builder> if $meta<builder>;
+        @requires.append: flat $!metadata<build-depends>.map({ self.map-dependency($_) })
+                if $!metadata<build-depends>;
+        @requires.push: 'Distribution::Builder' ~ $!metadata<builder> if $!metadata<builder>;
         return @requires.map({"BuildRequires:  $_"}).join("\n");
     }
 
-    method map-dependency($requires is copy) is export {
+    method map-dependency($requires is copy)  {
         my %adverbs = flat ($requires ~~ s:g/':' $<key> = (\w+) '<' $<value> = (<-[>]>+) '>'//)
                 .map({$_<key>.Str, $_<value>.Str});
         given %adverbs<from> {
@@ -80,19 +93,20 @@ class Module2Rpm::Spec {
         }
     }
 
-    method get-spec-file(Hash $meta --> Str) {
-        my $package-name = self.get-name(:$meta);
-        my $version = self.get-version(:$meta);
-        my $license = $meta<license> // '';
-        my $summary = $meta<description>;
+    #| Returns the spec file as String.
+    method get-spec-file(--> Str) {
+        my $package-name = self.get-name();
+        my $version = self.get-version();
+        my $license = $!metadata<license> // '';
+        my $summary = $!metadata<description>;
         $summary.=chop if $summary and $summary.ends-with('.');
-        my $source-url = $meta<source-url> || $meta<support><source>;
+        my $source-url = $!metadata<source-url> || $!metadata<support><source>;
         my $tar-name = "{$package-name}-$version.tar.xz";
-        my $source = $meta<tar-name>;
-        my $requires = self.requires(:$meta);
-        my $build-requires = self.build-requires(:$meta);
-        my $provides = self.provides(:$meta);
-        my $LICENSE = $meta<license-file> ?? "\n%license {$meta<license-file>}" !! '';
+        my $source = $!metadata<tar-name>;
+        my $requires = self.requires();
+        my $build-requires = self.build-requires();
+        my $provides = self.provides(:$!metadata);
+        my $LICENSE = $!metadata<license-file> ?? "\n%license {$!metadata<license-file>}" !! '';
         my $RPM_BUILD_ROOT = '$RPM_BUILD_ROOT'; # Workaround for https://rt.perl.org/Ticket/Display.html?id=127226
 
         my $template = q:s:to/TEMPLATE/;
