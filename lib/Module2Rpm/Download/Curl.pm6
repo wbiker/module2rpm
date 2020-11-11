@@ -13,6 +13,8 @@ class Module2Rpm::Download::Curl does Module2Rpm::Role::Download {
             return $proc.out.slurp(:close);
         }
 
+        # Directory must exists, otherwise Curl just returns with exitcode 3 and no output.
+        die "{$path.parent} does not exists!" unless $path.parent.e;
         my $proc = run @!curl-parameter, "-o", $path.absolute, "--", $url, :out, :merge;
         die "Could not download '$url' with curl: {$proc.out.slurp(:close)}"  if $proc.exitcode;
     }
