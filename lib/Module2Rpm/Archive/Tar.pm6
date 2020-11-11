@@ -11,18 +11,19 @@ Used tar parameters
     -t  --list      Lists the content of an archive.
     -x  --extract   Extract files from an archive.
     -J  --xz        Filter the archive through xz.
+    -C              Change working directory before do work.
 
 =end pod
 
 class Module2Rpm::Archive::Tar does Module2Rpm::Role::Archive {
     method Extract(IO::Path $path) {
-        my $proc = run 'tar', '-xf', $path, :cwd($path.parent);
+        my $proc = run 'tar', '-xf', $path.absolute, :cwd($path.parent);
 
-        die "Tar extract failed for '$path'" if $proc.exitcode;
+        die "Tar extract failed for '{$path.absolute}'" if $proc.exitcode;
     }
 
     method Compress(IO::Path $path, Str $name --> IO::Path) {
-        my $proc = run <tar --exclude-vcs -cJf>, $name, "-C", $path.parent, $path.basename, :cwd($path.parent);
+        my $proc = run <tar --exclude-vcs -cJf>, $name, "-C", $path.parent.absolute, $path.basename, :cwd($path.parent);
 
         die "Tar compress failed for '$path'" if $proc.exitcode;
 
