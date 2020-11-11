@@ -34,26 +34,25 @@ class Module2Rpm::Package {
     method Download() {
         my $tar = Module2Rpm::Archive::Tar.new;
 
+        my $download-dir = tempdir().IO;
+        my $downloaded-item = $download-dir.add($!module-name);
+
         if self.is-git-repository() {
-            my $temp-dir = tempdir().IO;
-            my $git-repo-dir = $temp-dir.add($!module-name);
-            Module2Rpm::Download::Git.new.Download($!source-url, $git-repo-dir);
-            my $git-repo-tar-archive-path = $tar.Compress($git-repo-dir, $!tar-name);
+            Module2Rpm::Download::Git.new.Download($!source-url, $downloaded-item);
+            my $git-repo-tar-archive-path = $tar.Compress($downloaded-item, $!tar-name);
             $git-repo-tar-archive-path.copy($!path.add($!tar-name));
             return;
         }
 
         # Download source as .tar.gz archive file and extract it.
-        my $download-path = tempdir().IO;
-        my $downloaded-file-path = $download-path.add('downloadfile.gz');
-        Module2Rpm::Download::Curl.new.Download($!source-url, $downloaded-file-path);
-        $tar.Extract($downloaded-file-path);
+        Module2Rpm::Download::Curl.new.Download($!source-url, $downloaded-item);
+        $tar.Extract($downloaded-item);
 
         # Rename the root folder of the extracted archive to: perl6-<module-name>.
-        my @top-level-dirs = $download-path.dir.grep(* ~~ :d);
+        my @top-level-dirs = $download-dir.dir.grep(* ~~ :d);
         die "Too many top level directories: @top-level-dirs" if @top-level-dirs.elems != 1;
         my $top-level-dir = @top-level-dirs[0].basename;
-        my $module-name-path = $download-path.add($!spec.get-name());
+        my $module-name-path = $download-dir.add($!spec.get-name());
         @top-level-dirs[0].rename($module-name-path);
 
         # Compress sources with renamed folder as perl6-<module name>-<version>.tar.xz.
