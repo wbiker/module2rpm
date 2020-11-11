@@ -5,7 +5,8 @@
   "perl": "6.*",
   "auth": "Write me!",
   "depends": [
-    "File::Temp"
+    "File::Temp",
+    "JSON::Fast"
   ],
   "build-depends": [],
   "test-depends": [],

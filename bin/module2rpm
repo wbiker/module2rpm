@@ -1,5 +1,18 @@
 #!/usr/bin/env raku
 
+use JSON::Fast;
+use File::Temp;
+
+use Module2Rpm::Download::Curl;
+use Module2Rpm::Download::Git;
+use Module2Rpm::Archive::Tar;
+use Module2Rpm::Spec;
+use Module2Rpm::Package;
+
+my @metadata-sources =
+        'https://raw.githubusercontent.com/ugexe/Perl6-ecosystems/master/cpan1.json',
+        'https://raw.githubusercontent.com/ugexe/Perl6-ecosystems/master/p6c1.json';
+
 #| Prints help
 multi sub MAIN() {
 
@@ -17,9 +30,22 @@ multi sub MAIN(:$metalist) {
 
 #| Downloads, creates spec file and uploads to OBS a given module.
 multi sub MAIN(:$module) {
-    # Download json metadata files.
-    # Look for <module> in the metadata.
-    # Download module source code.
-    # Write spec file.
-    # Upload to OBS.
+    say "Fetch module metadata...";
+    my $curl = Module2Rpm::Download::Curl.new;
+    my @all-metadata = @metadata-sources.map({from-json($curl.Download($_))}).flat;
+    my %all-metadata = @all-metadata.map: {$_<name> => $_ };
+
+    my $module-metadata = %all-metadata{$module};
+    die "Did not find metadata for module '$module'" unless $module-metadata;
+
+    my $spec = Module2Rpm::Spec.new(metadata => $module-metadata);
+    my $package = Module2Rpm::Package.new(spec => $spec, path => "packages".IO);
+
+    say "Download module source...";
+    $package.Download();
+
+    say "Write spec file...";
+    $package.write-spec-file();
+
+    say "Done";
 }
