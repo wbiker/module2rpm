@@ -10,3 +10,4 @@ module2rpm.iml
 doc/*.txt
 doc/*.html
 packages/
+*.tar.xz
