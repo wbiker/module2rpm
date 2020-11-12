@@ -1,4 +1,3 @@
-use Module2Rpm::Metadata;
 
 class Module2Rpm::Spec {
     has $.metadata is required;

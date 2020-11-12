@@ -1,7 +1,6 @@
 use File::Temp;
 
 use Module2Rpm::Spec;
-use Module2Rpm::Metadata;
 use Module2Rpm::Archive::Tar;
 use Module2Rpm::Download::Git;
 use Module2Rpm::Download::Curl;
