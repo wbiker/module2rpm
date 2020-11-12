@@ -5,6 +5,7 @@ use Module2Rpm::Metadata;
 use Module2Rpm::Archive::Tar;
 use Module2Rpm::Download::Git;
 use Module2Rpm::Download::Curl;
+use Module2Rpm::Role::Download;
 
 class Module2Rpm::Package {
     #| Class that handles spec file parameter.
@@ -18,7 +19,19 @@ class Module2Rpm::Package {
     #| The source url found in the metadata.
     has Str $.source-url;
 
-    submethod BUILD(Module2Rpm::Spec :$spec, IO::Path :$path) {
+    #| Class used to download via Curl.
+    has Module2Rpm::Role::Download $.curl;
+    #| Class used to clone with Git.
+    has Module2Rpm::Role::Download $.git;
+    #| Class used to compress, extract and list with Tar.
+    has Module2Rpm::Role::Archive $.tar;
+
+    submethod BUILD(Module2Rpm::Spec :$spec,
+            IO::Path :$path,
+            Module2Rpm::Role::Download :$curl = Module2Rpm::Download::Curl.new,
+            Module2Rpm::Role::Download :$git = Module2Rpm::Download::Git.new,
+            Module2Rpm::Role::Archive :$tar = Module2Rpm::Archive::Tar.new) {
+
         $!spec = $spec;
         $path.mkdir unless $path.e;
 
@@ -28,25 +41,29 @@ class Module2Rpm::Package {
 
         $!tar-name = "{$!module-name}-{$!spec.get-version()}.tar.xz";
         $!source-url = $!spec.get-source-url();
+
+        $!curl = $curl;
+        $!git = $git;
+        $!tar = $tar;
     };
 
-    #| Downloads the source and uses tar to create a compressed archive of it.
+    #| Downloads the source in a temporary folder and uses tar to create a compressed archive of it.
+    #| In case of a tarball file as source, the archive is extracted an the root folder is renamed to the module name.
+    #| Then the root folder is compressed with tar again and the archive file is copied to the destination.
     method Download() {
-        my $tar = Module2Rpm::Archive::Tar.new;
-
         my $download-dir = tempdir().IO;
-        my $downloaded-item = $download-dir.add($!module-name);
+        my $downloaded-item = $download-dir.add($!module-name ~ ".tmp");
 
         if self.is-git-repository() {
-            Module2Rpm::Download::Git.new.Download($!source-url, $downloaded-item);
-            my $git-repo-tar-archive-path = $tar.Compress($downloaded-item, $!tar-name);
+            $!git.Download($!source-url, $downloaded-item);
+            my $git-repo-tar-archive-path = $!tar.Compress($downloaded-item, $!tar-name);
             $git-repo-tar-archive-path.copy($!path.add($!tar-name));
             return;
         }
 
-        # Download source as .tar.gz archive file and extract it.
-        Module2Rpm::Download::Curl.new.Download($!source-url, $downloaded-item);
-        $tar.Extract($downloaded-item);
+        # Download source as .tar.gz archive file in an temporare folder and extract it.
+        $!curl.Download($!source-url, $downloaded-item);
+        $!tar.Extract($downloaded-item);
 
         # Rename the root folder of the extracted archive to: perl6-<module-name>.
         my @top-level-dirs = $download-dir.dir.grep(* ~~ :d);
@@ -56,7 +73,7 @@ class Module2Rpm::Package {
         @top-level-dirs[0].rename($module-name-path);
 
         # Compress sources with renamed folder as perl6-<module name>-<version>.tar.xz.
-        my $tar-archive-path = $tar.Compress($module-name-path, $!tar-name);
+        my $tar-archive-path = $!tar.Compress($module-name-path, $!tar-name);
         $tar-archive-path.copy($!path.add($!tar-name));
     }
 
