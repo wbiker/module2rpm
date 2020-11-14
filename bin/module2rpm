@@ -16,8 +16,13 @@ my $helper = Module2Rpm::Helper.new;
 # In the future a temporary directory will be used once the OBS upload works.
 my $destination-path = "./packages".IO;
 
+#| Prints the help.
+multi sub MAIN() {
+    help();
+}
+
 #| Downloads, creates spec files and uploads them to OBS for all modules given in a file.
-multi sub MAIN(Str :$file where *.IO.e) {
+multi sub MAIN(Str :$file) {
     say "Parse download file: $file";
     my @packages = $helper.create-packages(path => $destination-path, file => $file.IO);
 
@@ -49,3 +54,14 @@ multi sub MAIN(:$module) {
     say "Done";
 }
 
+sub help() {
+    return q:to/HELP/;
+    module2rpm [--module=module::name | --file=filePath]
+
+    This program downloads the source of a Raku module, writes the spec file with the metadata and uploads both files to OBS.
+
+    OPTIONS:
+        --module=module::name   Looks for the module::name in the Raku ecosystem to get the metadata of it. Then write the spec file and uploads the module source and spec file to OBS.
+        --file=filePath         Expect a file with either Module::Names or metadata urls. Download the sources and uploaded them together with the spec files to OBS.
+    HELP
+}
