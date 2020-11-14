@@ -25,10 +25,11 @@ class Module2Rpm::Helper {
         die "$file does not exists" unless $file.e;
 
         my %all-metadata = self.fetch-metadata();
-        my @packages;
 
+        my @packages;
         for $file.slurp.lines -> $line {
-            if self.is-source-url($line) {
+            if self.is-meta-url($line) {
+                say "Download metadata: '$line'";
                 my $metadata = from-json($!curl.Download($line));
                 my $spec = Module2Rpm::Spec.new(metadata => $metadata);
                 my $package = Module2Rpm::Package.new(spec => $spec, path => $path);
@@ -55,14 +56,14 @@ class Module2Rpm::Helper {
         return @packages;
     }
 
-    method is-source-url(Str $item) {
-        return $item.starts-with('http');
+    method is-meta-url(Str $item) {
+        return ($item.starts-with('http') and $item.ends-with('.meta') );
     }
 
     method is-module-name(Str $item) {
         return True if $item.contains('::');
 
-        return False if self.is-source-url($item);
+        return False if self.is-meta-url($item);
 
         # Module names can be Module::Name or just ModuleName. So, when not a source url I expect them to be names.
         return True;

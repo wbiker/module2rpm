@@ -19,10 +19,10 @@ class CurlReplacement does Module2Rpm::Role::Download {
     my $helper;
     lives-ok { $helper = Module2Rpm::Helper.new(curl => CurlReplacement.new) }, "Creation of helper works without exceptions";
     is $helper.curl.WHAT, CurlReplacement.WHAT, "Curl object is the expected one";
-    ok $helper.is-source-url("http://something"), "Source url recognized";
-    nok $helper.is-source-url("Module::Name"), "Name for source url recognized";
+    ok $helper.is-meta-url("http://something.meta"), "Meta url recognized";
+    nok $helper.is-meta-url("Module::Name"), "Name instead of meta url recognized";
     ok $helper.is-module-name("Module.:Name"), "Module name found";
-    nok $helper.is-module-name("http://something"), "Url instead of Name";
+    nok $helper.is-module-name("http://something.meta"), "Url instead of Name";
 }
 
 {
