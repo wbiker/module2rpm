@@ -12,14 +12,21 @@ use Module2Rpm::Helper;
 
 my $helper = Module2Rpm::Helper.new;
 
+# Where the source code and the spec files are stored. At the moment a directory in the root folder is used.
+# In the future a temporary directory will be used once the OBS upload works.
+my $destination-path = "./packages".IO;
+
 #| Downloads, creates spec files and uploads them to OBS for all modules given in a file.
-multi sub MAIN(:$file) {
-    # Go through the file line by line.
-    # Each line is handled as URL and expect to retrieve a json with meta information.
-    # Download module source code.
-    # Write Spec file.
-    # Upload to OBS.
-    # Repeat.
+multi sub MAIN(Str :$file where *.IO.e) {
+    say "Parse download file: $file";
+    my @packages = $helper.create-packages(path => $destination-path, file => $file.IO);
+
+    for @packages -> $package {
+        say "{$package.spec.get-name()}: Download source...";
+        $package.Download();
+        say "{$package.spec.get-name()}: Write spec file...";
+        $package.write-spec-file();
+    }
 }
 
 #| Downloads, creates spec file and uploads to OBS a given module.
@@ -31,7 +38,7 @@ multi sub MAIN(:$module) {
     die "Did not find metadata for module '$module'" unless $module-metadata;
 
     my $spec = Module2Rpm::Spec.new(metadata => $module-metadata);
-    my $package = Module2Rpm::Package.new(spec => $spec, path => "packages".IO);
+    my $package = Module2Rpm::Package.new(spec => $spec, path => $destination-path);
 
     say "Download module source...";
     $package.Download();
