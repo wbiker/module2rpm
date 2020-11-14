@@ -8,18 +8,12 @@ use Module2Rpm::Download::Git;
 use Module2Rpm::Archive::Tar;
 use Module2Rpm::Spec;
 use Module2Rpm::Package;
+use Module2Rpm::Helper;
 
-my @metadata-sources =
-        'https://raw.githubusercontent.com/ugexe/Perl6-ecosystems/master/cpan1.json',
-        'https://raw.githubusercontent.com/ugexe/Perl6-ecosystems/master/p6c1.json';
-
-#| Prints help
-multi sub MAIN() {
-
-}
+my $helper = Module2Rpm::Helper.new;
 
 #| Downloads, creates spec files and uploads them to OBS for all modules given in a file.
-multi sub MAIN(:$metalist) {
+multi sub MAIN(:$file) {
     # Go through the file line by line.
     # Each line is handled as URL and expect to retrieve a json with meta information.
     # Download module source code.
@@ -31,9 +25,7 @@ multi sub MAIN(:$metalist) {
 #| Downloads, creates spec file and uploads to OBS a given module.
 multi sub MAIN(:$module) {
     say "Fetch module metadata...";
-    my $curl = Module2Rpm::Download::Curl.new;
-    my @all-metadata = @metadata-sources.map({from-json($curl.Download($_))}).flat;
-    my %all-metadata = @all-metadata.map: {$_<name> => $_ };
+    my %all-metadata = $helper.fetch-metadata();
 
     my $module-metadata = %all-metadata{$module};
     die "Did not find metadata for module '$module'" unless $module-metadata;
@@ -49,3 +41,4 @@ multi sub MAIN(:$module) {
 
     say "Done";
 }
+
