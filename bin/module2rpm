@@ -17,12 +17,12 @@ my $helper = Module2Rpm::Helper.new;
 my $destination-path = "./packages".IO;
 
 #| Prints the help.
-multi sub MAIN() {
+multi MAIN(:h(:$help)) {
     help();
 }
 
 #| Downloads, creates spec files and uploads them to OBS for all modules given in a file.
-multi sub MAIN(Str :$file) {
+multi MAIN(:$file!) {
     say "Parse download file: $file";
     my @packages = $helper.create-packages(path => $destination-path, file => $file.IO);
 
@@ -35,7 +35,7 @@ multi sub MAIN(Str :$file) {
 }
 
 #| Downloads, creates spec file and uploads to OBS a given module.
-multi sub MAIN(:$module) {
+multi MAIN(:$module!) {
     say "Fetch module metadata...";
     my %all-metadata = $helper.fetch-metadata();
 
@@ -55,13 +55,20 @@ multi sub MAIN(:$module) {
 }
 
 sub help() {
-    return q:to/HELP/;
+    say q:to/HELP/;
     module2rpm [--module=module::name | --file=filePath]
 
-    This program downloads the source of a Raku module, writes the spec file with the metadata and uploads both files to OBS.
+    This program downloads the source of a Raku module, writes the spec file
+    with the metadata and uploads both files to OBS.
 
     OPTIONS:
-        --module=module::name   Looks for the module::name in the Raku ecosystem to get the metadata of it. Then write the spec file and uploads the module source and spec file to OBS.
-        --file=filePath         Expect a file with either Module::Names or metadata urls. Download the sources and uploaded them together with the spec files to OBS.
+        --module=module::name   Looks for the module::name in the Raku
+                                ecosystem to get the metadata of it. Then write
+                                the spec file and uploads the module source and
+                                spec file to OBS.
+        --file=filePath         Expect a file with either Module::Names or
+                                metadata urls. Download the sources and
+                                uploaded them together with the spec files to
+                                OBS.
     HELP
 }
