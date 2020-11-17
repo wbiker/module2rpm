@@ -121,7 +121,6 @@ my $meta = {
    "version" => "0.0.2"
 }
 
-my $package-dir = tempdir().IO;
 my $spec = Module2Rpm::Spec.new(metadata => $meta);
 my $spec-file-content = $spec.get-spec-file();
 
@@ -135,6 +134,5 @@ like $spec-file-content, /'BuildRequires:  fdupes' \n 'BuildRequires:  rakudo >=
 like $spec-file-content, /'Requires:       perl6 >= 2016.12'/, "Requires found in spec file";
 like $spec-file-content, /'Provides:       perl6(IO::Prompt)'/, "Provides found in spec file";
 like $spec-file-content, /'BuildRoot:      %{_tmppath}/%{name}-%{version}-build'/, "BuildRoot found in spec file";
-
 
 done-testing;
