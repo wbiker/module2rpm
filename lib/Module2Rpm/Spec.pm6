@@ -1,8 +1,11 @@
+use Module2Rpm::Role::FindRpmWrapper;
+use Module2Rpm::FindRpmWrapper;
 
 class Module2Rpm::Spec {
     has $.metadata is required;
     has $.requires = 'perl6 >= 2016.12';
     has $.build-requires = 'rakudo >= 2017.04.2';
+    has Module2Rpm::Role::FindRpmWrapper $.find-rpm = Module2Rpm::FindRpmWrapper.new;
 
     method get-source-url( --> Str) {
         return $!metadata<source-url> || $!metadata<support><source>;
@@ -50,11 +53,12 @@ class Module2Rpm::Spec {
     method build-requires()  {
         my @requires = $!build-requires;
 
-        if $!metadata<depends> {
+        if $!metadata<depends> and $!metadata<depends> ~~ Positional {
             @requires.append: flat $!metadata<depends>.map({ self.map-dependency($_) })
-                    if $!metadata<depends> ~~ Positional;
+        }
+
+        if $!metadata<depends> and $!metadata<depends> ~~ Associative and $!metadata<depends><build><requires> {
             @requires.append: flat $!metadata<depends><build><requires>.map({ self.map-dependency($_) })
-                    if $!metadata<depends> ~~ Associative;
         }
 
         @requires.append: flat $!metadata<build-depends>.map({ self.map-dependency($_) })
@@ -68,24 +72,7 @@ class Module2Rpm::Spec {
                 .map({$_<key>.Str, $_<value>.Str});
         given %adverbs<from> {
             when 'native' {
-                if %adverbs<ver> {
-                    my $lib = $*VM.platform-library-name($requires.IO, :version(Version.new(%adverbs<ver>)));
-                    my $path = </usr/lib64 /lib64 /usr/lib /lib>.first({$_.IO.add($lib).e});
-                    if $path {
-                        my $proc = run '/usr/lib/rpm/find-provides', :in, :out;
-                        $proc.in.say($path.IO.add($lib).resolve.Str);
-                        $proc.in.close;
-                        $proc.out.lines;
-                    }
-                    else {
-                        note "Falling back to depending on the library path as I couldn't find $lib";
-                        '%{_libdir}/' ~ $*VM.platform-library-name($requires.IO)
-                    }
-                }
-                else {
-                    note "Package doesn't specify a library version, so I have to fall back to depending on library path.";
-                    '%{_libdir}/' ~ $*VM.platform-library-name($requires.IO)
-                }
+                return $!find-rpm.find-rpm(:%adverbs, requires => $requires.IO);
             }
             when 'bin'    { '%{_bindir}/' ~ $requires }
             default       { "perl6($requires)" }
@@ -104,7 +91,7 @@ class Module2Rpm::Spec {
         my $source = $!metadata<tar-name>;
         my $requires = self.requires();
         my $build-requires = self.build-requires();
-        my $provides = self.provides(:$!metadata);
+        my $provides = self.provides();
         my $LICENSE = $!metadata<license-file> ?? "\n%license {$!metadata<license-file>}" !! '';
         my $RPM_BUILD_ROOT = '$RPM_BUILD_ROOT'; # Workaround for https://rt.perl.org/Ticket/Display.html?id=127226
 
