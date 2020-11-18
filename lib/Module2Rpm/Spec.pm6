@@ -45,7 +45,24 @@ class Module2Rpm::Spec {
                     if $!metadata<depends> ~~ Associative;
         }
 
+        my @test-requires = self.test-requires();
+        @requires.append(@test-requires) if @test-requires.elems > 0;
+
         return @requires.map({"Requires:       $_"}).join("\n");
+    }
+
+    method test-requires() {
+        my @requires;
+
+        if $!metadata<test-depends>  {
+            @requires.append: flat $!metadata<test-depends>.map({ self.map-dependency($_) });
+        }
+
+        if $!metadata<depends><test><requires> {
+            @requires.append: flat $!metadata<depends><test><requires>.map({ self.map-dependency($_) });
+        }
+
+        return @requires;
     }
 
     #| Returns a list of the build requirements with the pattern:

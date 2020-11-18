@@ -72,6 +72,21 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
 {
     my $spec = Module2Rpm::Spec.new(metadata => {
         depends => {
+            runtime => { "requires" => ["Cairo"] },
+            test => { requires => ["testModule"] }
+        }
+    });
+
+    is $spec.requires(), chomp(q:to/SPEC/), "Requires returns test requirements";
+        Requires:       perl6 >= 2016.12
+        Requires:       perl6(Cairo)
+        Requires:       perl6(testModule)
+        SPEC
+}
+
+{
+    my $spec = Module2Rpm::Spec.new(metadata => {
+        depends => {
             runtime => {
                 "requires" => [ "NativeLibs:ver<0.0.7+>:auth<github:salortiz>",
                                 "gpgme:from<native>:ver<11>"]
