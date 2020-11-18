@@ -72,7 +72,10 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
 {
     my $spec = Module2Rpm::Spec.new(metadata => {});
 
-    is $spec.build-requires(), "BuildRequires:  rakudo >= 2017.04.2", "Build-requires returns one dependency";
+    is $spec.build-requires(), chomp(q:to/META/), "Build-requires returns one dependency";
+        BuildRequires:  rakudo >= 2017.04.2
+        BuildRequires:  %{requires}
+        META
 }
 
 {
@@ -80,6 +83,7 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
 
     is $spec.build-requires(), chomp(q:to/SPEC/), "Build-requires returns several dependency";
         BuildRequires:  rakudo >= 2017.04.2
+        BuildRequires:  %{requires}
         BuildRequires:  perl6(LibraryMake)
         BuildRequires:  perl6(Pod::To::Markdown)
         SPEC
@@ -93,6 +97,7 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
 
     is $spec.build-requires(), chomp(q:to/SPEC/), "Build-requires returns also depends dependency";
         BuildRequires:  rakudo >= 2017.04.2
+        BuildRequires:  %{requires}
         BuildRequires:  perl6(Pod::To::Markdown)
         BuildRequires:  perl6(LibraryMake)
         SPEC
