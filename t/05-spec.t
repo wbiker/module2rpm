@@ -70,6 +70,23 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
 }
 
 {
+    my $spec = Module2Rpm::Spec.new(metadata => {
+        depends => {
+            runtime => {
+                "requires" => [ "NativeLibs:ver<0.0.7+>:auth<github:salortiz>",
+                                "gpgme:from<native>:ver<11>"]
+            }
+        }
+    });
+
+    is $spec.requires(), chomp(q:to/SPEC/), "Requires returns several runtime dependencies";
+        Requires:       perl6 >= 2016.12
+        Requires:       perl6(NativeLibs)
+        Requires:       %{_libdir}/libgpgme.so
+        SPEC
+}
+
+{
     my $spec = Module2Rpm::Spec.new(metadata => {});
 
     is $spec.build-requires(), chomp(q:to/META/), "Build-requires returns one dependency";
