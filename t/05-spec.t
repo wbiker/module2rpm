@@ -127,7 +127,7 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
         depends => {build => {"requires" => ["Pod::To::Markdown"]}}
     });
 
-    is $spec.build-requires(), chomp(q:to/SPEC/), "Build-requires returns also depends dependency";
+    is $spec.build-requires(), chomp(q:to/SPEC/), 'Build-requires returns also %{requires} dependency';
         BuildRequires:  rakudo >= 2017.04.2
         BuildRequires:  %{requires}
         BuildRequires:  perl6(Pod::To::Markdown)
@@ -168,7 +168,7 @@ like $spec-file-content, /'Release:        1.1'/, "Release found in spec file";
 like $spec-file-content, /'License:        Artistic-2.0'/, "License found in spec file";
 like $spec-file-content, /'BuildRequires:  fdupes'/, "BuildRequires found in spec file";
 like $spec-file-content, /'BuildRequires:  fdupes' \n 'BuildRequires:  rakudo >= 2017.04.2'/, "BuildRequires found in spec file";
-like $spec-file-content, /'Requires:       perl6 >= 2016.12'/, "Requires found in spec file";
+like $spec-file-content, /'Requires:       perl6 >= 2016.12' \n 'Requires:       perl6(Test)'/, "Requires found in spec file";
 like $spec-file-content, /'Provides:       perl6(IO::Prompt)'/, "Provides found in spec file";
 like $spec-file-content, /'BuildRoot:      %{_tmppath}/%{name}-%{version}-build'/, "BuildRoot found in spec file";
 
