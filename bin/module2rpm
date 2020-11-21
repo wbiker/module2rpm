@@ -12,6 +12,8 @@ use Module2Rpm::Archive::Tar;
 use Module2Rpm::Spec;
 use Module2Rpm::Package;
 use Module2Rpm::Helper;
+use Module2Rpm::Upload::OBS;
+use Module2Rpm::Upload::Cro::Client;
 
 my $helper = Module2Rpm::Helper.new;
 
