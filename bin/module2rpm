@@ -2,6 +2,9 @@
 
 use JSON::Fast;
 use File::Temp;
+use Config::Clever;
+use XML;
+use Cro::HTTP::Client;
 
 use Module2Rpm::Download::Curl;
 use Module2Rpm::Download::Git;
@@ -15,6 +18,25 @@ my $helper = Module2Rpm::Helper.new;
 # Where the source code and the spec files are stored. At the moment a directory in the root folder is used.
 # In the future a temporary directory will be used once the OBS upload works.
 my $destination-path = "./packages".IO;
+
+my %config = Config::Clever.load();
+# Config for Open Build Service.
+# User using the OBS API: https://api.opensuse.org
+my $obs-user = %config<obs-user>;
+# Password for the OBS user:
+my $obs-password = %config<obs-password>;
+# Project to upload the modules to:
+my $obs-project = %config<obs-project>;
+
+multi MAIN('obs') {
+    my $client = Module2Rpm::Upload::Cro::Client.new(auth => {
+        username => $obs-user,
+        password => $obs-password
+    });
+
+    my $obs = Module2Rpm::Upload::OBS.new(client => $client, project => $obs-project);
+    $obs.package-exists("perl6-IO-Prompt");
+}
 
 #| Prints the help.
 multi MAIN(:h(:$help)) {

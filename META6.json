@@ -6,7 +6,10 @@
   "auth": "wbiker",
   "depends": [
     "File::Temp",
-    "JSON::Fast"
+    "JSON::Fast",
+    "Cro::HTTP",
+    "XML",
+    "Config::Clever"
   ],
   "build-depends": [],
   "test-depends": [],
@@ -20,7 +23,9 @@
     "Module2Rpm::Role::Archive": "lib/Module2Rpm/Role/Archive.pm6",
     "Module2Rpm::Role::Download": "lib/Module2Rpm/Role/Download.pm6",
     "Module2Rpm::Role::FindRpmWrapper": "lib/Module2Rpm/Role/FindRpmWrapper.pm6",
+    "Module2Rpm::Role::Upload": "lib/Module2Rpm/Role/Upload.pm6",
     "Module2Rpm::Spec": "lib/Module2Rpm/Spec.pm6",
+    "Module2Rpm::Upload::Cro::Client": "lib/Module2Rpm/Upload/Cro/Client.pm6",
     "Module2Rpm::Upload::OBS": "lib/Module2Rpm/Upload/OBS.pm6"
   },
   "resources": [],
