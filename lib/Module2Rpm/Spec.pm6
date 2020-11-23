@@ -4,7 +4,7 @@ use Module2Rpm::FindRpmWrapper;
 class Module2Rpm::Spec {
     has $.metadata is required;
     has $.requires = 'perl6 >= 2016.12';
-    has $.build-requires = "rakudo >= 2017.04.2\nBuildRequires:  %\{requires}";
+    has $.build-requires = "rakudo >= 2017.04.2";
     has Module2Rpm::Role::FindRpmWrapper $.find-rpm = Module2Rpm::FindRpmWrapper.new;
 
     method get-source-url( --> Str) {
@@ -96,21 +96,26 @@ class Module2Rpm::Spec {
         }
     }
 
+    method get-summary() {
+        my $summary = $!metadata<description>;
+        $summary.=chop if $summary and $summary.ends-with('.');
+        return $summary;
+    }
+
     #| Returns the spec file as String.
-    method get-spec-file(--> Str) {
+    method get-spec-file(:$readme-file --> Str) {
         my $package-name = self.get-name();
         my $version = self.get-version();
         my $license = $!metadata<license> // '';
-        my $summary = $!metadata<description>;
-        $summary.=chop if $summary and $summary.ends-with('.');
+        my $summary = self.get-summary();
         my $source-url = $!metadata<source-url> || $!metadata<support><source>;
         my $tar-name = "{$package-name}-$version.tar.xz";
-        my $source = $!metadata<tar-name>;
         my $requires = self.requires();
         my $build-requires = self.build-requires();
         my $provides = self.provides();
         my $LICENSE = $!metadata<license-file> ?? "\n%license {$!metadata<license-file>}" !! '';
         my $RPM_BUILD_ROOT = '$RPM_BUILD_ROOT'; # Workaround for https://rt.perl.org/Ticket/Display.html?id=127226
+        my $readme = $readme-file.basename // "";
 
         my $template = q:s:to/TEMPLATE/;
         #
@@ -157,7 +162,7 @@ class Module2Rpm::Spec {
         find %{buildroot}/%{_datadir}/perl6/vendor/bin/ -type f -exec sed -i -e '1s:!/usr/bin/env :!/usr/bin/:' '{}' \;
         %files
         %defattr(-,root,root)
-        %doc README.md$LICENSE
+        %doc $readme $LICENSE
         %{_datadir}/perl6/vendor
         %changelog
         TEMPLATE

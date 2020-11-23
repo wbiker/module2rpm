@@ -13,6 +13,8 @@ class Module2Rpm::Package {
     has IO::Path $.path;
     #| Name of the module with the pattern: perl6-<module name with :: replaced by ->.
     has Str $.module-name;
+    #| Module name with version: perl6-<module-name>-<version>
+    has Str $.module-name-with-version;
     #| The tarball file name with the pattern: perl6-<module name>-<version>.tar.xz.
     has Str $.tar-name;
     #| The source url found in the metadata.
@@ -23,6 +25,8 @@ class Module2Rpm::Package {
     has IO::Path $.tar-archive-path;
     #| Path of the local spec file.
     has IO::Path $.spec-file-path;
+    #| The readme file of the package.
+    has IO::Path $.readme-file;
 
     #| Class used to download via Curl.
     has Module2Rpm::Role::Download $.curl;
@@ -41,6 +45,7 @@ class Module2Rpm::Package {
         $path.mkdir unless $path.e;
 
         $!module-name = $spec.get-name();
+        $!module-name-with-version = $!module-name ~ "-" ~ $!spec.get-version;
         $!path = $path.add($!module-name);
         $!path.mkdir unless $!path.e;
 
@@ -70,7 +75,7 @@ class Module2Rpm::Package {
             return;
         }
 
-        # Download source as .tar.gz archive file in an temporare folder and extract it.
+        # Download source as .tar.gz archive file in an temporary folder and extract it.
         $!curl.Download($!source-url, $downloaded-item);
         $!tar.Extract($downloaded-item);
 
@@ -78,8 +83,9 @@ class Module2Rpm::Package {
         my @top-level-dirs = $download-dir.dir.grep(* ~~ :d);
         die "Too many top level directories: @top-level-dirs" if @top-level-dirs.elems != 1;
         my $top-level-dir = @top-level-dirs[0].basename;
-        my $module-name-path = $download-dir.add($!spec.get-name());
+        my $module-name-path = $download-dir.add($!module-name-with-version);
         @top-level-dirs[0].rename($module-name-path);
+        $!readme-file = self.get-readme($module-name-path);
 
         # Compress sources with renamed folder as perl6-<module name>-<version>.tar.xz.
         my $tmp-tar-archive-path = $!tar.Compress($module-name-path, $!tar-name);
@@ -87,11 +93,17 @@ class Module2Rpm::Package {
     }
 
     method write-spec-file() {
-        my $spec-file-content = $!spec.get-spec-file();
+        my $spec-file-content = $!spec.get-spec-file(readme-file => $!readme-file);
         $!spec-file-path.spurt($spec-file-content);
     }
 
     method is-git-repository() {
         return ($!source-url.starts-with('git://') or $!source-url.ends-with('.git'));
+    }
+
+    method get-readme(IO::Path $path) {
+       for $path.dir -> $item {
+           return $item if $item.basename ~~ /'README'/;
+       }
     }
 }
