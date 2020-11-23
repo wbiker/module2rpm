@@ -17,6 +17,12 @@ class Module2Rpm::Package {
     has Str $.tar-name;
     #| The source url found in the metadata.
     has Str $.source-url;
+    #| The spec file name.
+    has Str $.spec-file-name;
+    #| Path of the local tar archive.
+    has IO::Path $.tar-archive-path;
+    #| Path of the local spec file.
+    has IO::Path $.spec-file-path;
 
     #| Class used to download via Curl.
     has Module2Rpm::Role::Download $.curl;
@@ -41,6 +47,10 @@ class Module2Rpm::Package {
         $!tar-name = "{$!module-name}-{$!spec.get-version()}.tar.xz";
         $!source-url = $!spec.get-source-url();
 
+        $!spec-file-name = $!module-name ~ ".spec";
+        $!spec-file-path = $!path.add($!spec-file-name);
+        $!tar-archive-path = $!path.add($!tar-name);
+
         $!curl = $curl;
         $!git = $git;
         $!tar = $tar;
@@ -56,7 +66,7 @@ class Module2Rpm::Package {
         if self.is-git-repository() {
             $!git.Download($!source-url, $downloaded-item);
             my $git-repo-tar-archive-path = $!tar.Compress($downloaded-item, $!tar-name);
-            $git-repo-tar-archive-path.copy($!path.add($!tar-name));
+            $git-repo-tar-archive-path.copy($!tar-archive-path);
             return;
         }
 
@@ -72,13 +82,13 @@ class Module2Rpm::Package {
         @top-level-dirs[0].rename($module-name-path);
 
         # Compress sources with renamed folder as perl6-<module name>-<version>.tar.xz.
-        my $tar-archive-path = $!tar.Compress($module-name-path, $!tar-name);
-        $tar-archive-path.copy($!path.add($!tar-name));
+        my $tmp-tar-archive-path = $!tar.Compress($module-name-path, $!tar-name);
+        $tmp-tar-archive-path.copy($!tar-archive-path);
     }
 
     method write-spec-file() {
         my $spec-file-content = $!spec.get-spec-file();
-        $!path.add($!module-name ~ ".spec").spurt($spec-file-content);
+        $!spec-file-path.spurt($spec-file-content);
     }
 
     method is-git-repository() {

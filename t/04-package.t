@@ -60,7 +60,10 @@ is $package.module-name, "{$module-name-prefix}Module-Name", "Module name is the
 is $package.path.absolute, $tempdir.add($package.module-name), "Package directory path is the expected one";
 ok $package.path.e, "Package directory was created";
 is $package.tar-name, "{$module-name-prefix}Module-Name-1.1.1.tar.xz", "Tar name is the expected one";
+is $package.tar-archive-path, "{$tempdir.add($package.module-name).add($package.tar-name)}", "Tar path is the expected one";
 is $package.source-url, 'http://www.cpan.org/authors/id/A/AR/ARNE/Perl6/p6-time-repeat-0.0101.tar.gz', "Source url is the expected one";
+is $package.spec-file-name, "{$module-name-prefix}Module-Name.spec", "Spec file name is the expected one";
+is $package.spec-file-path, "{$tempdir.add($package.module-name).add($package.spec-file-name)}", "Spec file path is the expected one";
 is $package.curl.WHAT, Module2Rpm::Download::Curl.WHAT, "Proper Curl default class is used";
 is $package.git.WHAT, Module2Rpm::Download::Git.WHAT, "Proper Git default class is used";
 is $package.tar.WHAT, Module2Rpm::Archive::Tar.WHAT, "Proper Tar default class is used";
