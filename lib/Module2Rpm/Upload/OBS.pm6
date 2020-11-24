@@ -21,24 +21,53 @@ class Module2Rpm::Upload::OBS {
         return $!packages{$package-name};
     }
 
-    method delete-source-file(Module2Rpm::Package :$package) {
-        my $url = $!api-url ~ "/source/" ~ $package.module-name ~ "/" ~ $package.tar-name;
-        my $response = $!client.delete($url);
-
-        say $response.status;
+    method create-package(Module2Rpm::Package :$package) {
+        my $xml = qq:to/END/;
+        <package name="{$package.module-name}" project="$!project">
+            <title>{$package.module-name}</title>
+            <description>{$package.spec.get-summary()}</description>
+        </package>
+        END
+        my $url = $!api-url ~ "/source/" ~ $!project  ~ "/" ~ $package.module-name ~ "/_meta";
+        $!client.put($url, content-type => "application/xml", body => $xml);
     }
 
+    method delete-package(Module2Rpm::Package :$package!) {
+        my $url = $!api-url ~ "/source/" ~ $!project ~ "/" ~ $package.module-name;
+        $!client.delete($url);
+    }
+
+    method upload-files(Module2Rpm::Package :$package!) {
+        if self.package-exists($package.module-name) {
+            self.delete-package(:$package);
+        }
+        self.create-package(:$package);
+
+        my $url-source-archive = $!api-url ~ "/source/" ~ $!project ~ "/" ~ $package.module-name ~ "/" ~ $package.tar-name;
+        my $url-spec-file = $!api-url ~ "/source/" ~ $!project ~ "/" ~ $package.module-name ~ "/" ~ $package.spec-file-name;
+
+        my $tar-archive-binary-content = $package.tar-archive-path.slurp(:bin, :close);
+        my $spec-file-content = $package.spec-file-path.slurp(:close);
+
+        $!client.put($url-source-archive,
+            content-type => "application/octet-stream",
+            body => $tar-archive-binary-content
+        );
+
+        $!client.put($url-spec-file,
+            content-type => "text/html",
+            body => $spec-file-content
+        );
+    }
     method get($url = "" --> XML::Document) {
         my $body = $!client.get($url);
 
         if $body ~~ Buf {
             my $str = $body.decode;
-            say "appliaction/xml: ", $str;
             return from-xml($str);
         }
 
         if $body ~~ Str {
-            say "text/xml: ", $body;
             return from-xml($body);
         }
 

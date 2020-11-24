@@ -16,7 +16,13 @@ class Module2Rpm::Upload::Cro::Client does Module2Rpm::Role::Upload {
     }
 
     method put(Str $url, :$content-type?, :$body?) {
-        return await $!client.put($url, :$content-type, :$body);
+        try {
+            return await $!client.put($url, :$content-type, :$body);
+
+            CATCH {
+                default { "PUT request failed with {$_} for '$url' with content-type '$content-type'"; }
+            }
+        }
     }
 
     method delete(Str $url) {

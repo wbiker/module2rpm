@@ -106,7 +106,7 @@ class Module2Rpm::Spec {
     method get-spec-file(:$readme-file --> Str) {
         my $package-name = self.get-name();
         my $version = self.get-version();
-        my $license = $!metadata<license> // '';
+        my $license = $!metadata<license> // 'Artistic-2.0';
         my $summary = self.get-summary();
         my $source-url = $!metadata<source-url> || $!metadata<support><source>;
         my $tar-name = "{$package-name}-$version.tar.xz";
@@ -115,7 +115,7 @@ class Module2Rpm::Spec {
         my $provides = self.provides();
         my $LICENSE = $!metadata<license-file> ?? "\n%license {$!metadata<license-file>}" !! '';
         my $RPM_BUILD_ROOT = '$RPM_BUILD_ROOT'; # Workaround for https://rt.perl.org/Ticket/Display.html?id=127226
-        my $readme = $readme-file.basename // "";
+        my $readme = $readme-file ?? $readme-file.basename !! "";
 
         my $template = q:s:to/TEMPLATE/;
         #

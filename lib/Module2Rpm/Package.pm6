@@ -93,7 +93,7 @@ class Module2Rpm::Package {
     }
 
     method write-spec-file() {
-        my $spec-file-content = $!spec.get-spec-file(readme-file => $!readme-file);
+        my $spec-file-content = $!spec.get-spec-file(readme-file => $!readme-file.IO);
         $!spec-file-path.spurt($spec-file-content);
     }
 
