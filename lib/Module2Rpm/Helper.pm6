@@ -1,7 +1,7 @@
 use JSON::Fast;
 
 use Module2Rpm::Role::Download;
-use Module2Rpm::Download::Curl;
+use Module2Rpm::Cro::Client;
 use Module2Rpm::Spec;
 use Module2Rpm::Package;
 
@@ -10,11 +10,11 @@ class Module2Rpm::Helper {
             'https://raw.githubusercontent.com/ugexe/Perl6-ecosystems/master/cpan1.json',
             'https://raw.githubusercontent.com/ugexe/Perl6-ecosystems/master/p6c1.json';
 
-    has Module2Rpm::Role::Download $.curl = Module2Rpm::Download::Curl.new;
+    has Module2Rpm::Role::Internet $.client = Module2Rpm::Cro::Client.new;
 
     method fetch-metadata( --> Hash) {
         my %all-metadata = @!metadata-sources
-                .map({from-json($!curl.Download($_))})
+                .map({from-json($!client.get($_))})
                 .flat
                 .map({$_<name> => $_ }).Hash;
 
@@ -28,9 +28,11 @@ class Module2Rpm::Helper {
 
         my @packages;
         for $file.slurp.lines -> $line {
+            next if self.is-comment($line);
+
             if self.is-meta-url($line) {
                 say "Download metadata: '$line'";
-                my $metadata = from-json($!curl.Download($line));
+                my $metadata = from-json($!client.get($line));
                 my $spec = Module2Rpm::Spec.new(metadata => $metadata);
                 my $package = Module2Rpm::Package.new(spec => $spec, path => $path);
                 @packages.push: $package;
@@ -54,6 +56,10 @@ class Module2Rpm::Helper {
         }
 
         return @packages;
+    }
+
+    method is-comment(Str $item) {
+        return $item.starts-with('#');
     }
 
     method is-meta-url(Str $item) {

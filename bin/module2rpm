@@ -6,14 +6,13 @@ use Config::Clever;
 use XML;
 use Cro::HTTP::Client;
 
-use Module2Rpm::Download::Curl;
 use Module2Rpm::Download::Git;
 use Module2Rpm::Archive::Tar;
 use Module2Rpm::Spec;
 use Module2Rpm::Package;
 use Module2Rpm::Helper;
 use Module2Rpm::Upload::OBS;
-use Module2Rpm::Upload::Cro::Client;
+use Module2Rpm::Cro::Client;
 
 my $helper = Module2Rpm::Helper.new;
 
@@ -30,14 +29,30 @@ my $obs-password = %config<obs-password>;
 # Project to upload the modules to:
 my $obs-project = %config<obs-project>;
 
-multi MAIN('obs') {
-    my $client = Module2Rpm::Upload::Cro::Client.new(auth => {
+my $client = Module2Rpm::Cro::Client.new(auth => {
+    username => $obs-user,
+    password => $obs-password
+});
+
+multi MAIN('deleteallpackages') {
+    my $client = Module2Rpm::Cro::Client.new(auth => {
         username => $obs-user,
         password => $obs-password
     });
 
     my $obs = Module2Rpm::Upload::OBS.new(client => $client, project => $obs-project);
-    $obs.package-exists("perl6-IO-Prompt");
+    $obs.delete-all-packages();
+}
+
+multi MAIN('deletepackage', :$package-name) {
+    my $client = Module2Rpm::Cro::Client.new(auth => {
+        username => $obs-user,
+        password => $obs-password
+    });
+
+    my $obs = Module2Rpm::Upload::OBS.new(client => $client, project => $obs-project);
+
+   # $obs.delpack($package-name);
 }
 
 #| Prints the help.
@@ -55,6 +70,10 @@ multi MAIN(:$file!) {
         $package.Download();
         say "{$package.spec.get-name()}: Write spec file...";
         $package.write-spec-file();
+
+        my $obs = Module2Rpm::Upload::OBS.new(client => $client, project => $obs-project);
+        say "Upload {$package.spec.get-name()} to OBS";
+        $obs.upload-files(package => $package);
     }
 }
 
@@ -74,6 +93,10 @@ multi MAIN(:$module!) {
 
     say "Write spec file...";
     $package.write-spec-file();
+
+    my $obs = Module2Rpm::Upload::OBS.new(client => $client, project => $obs-project);
+    say "Upload module to OBS";
+    $obs.upload-files(package => $package);
 
     say "Done";
 }

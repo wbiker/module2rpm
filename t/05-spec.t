@@ -80,7 +80,6 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
     is $spec.requires(), chomp(q:to/SPEC/), "Requires returns test requirements";
         Requires:       perl6 >= 2016.12
         Requires:       perl6(Cairo)
-        Requires:       perl6(testModule)
         SPEC
 }
 
@@ -165,7 +164,7 @@ like $spec-file-content, /'Release:        1.1'/, "Release found in spec file";
 like $spec-file-content, /'License:        Artistic-2.0'/, "License found in spec file";
 like $spec-file-content, /'BuildRequires:  fdupes'/, "BuildRequires found in spec file";
 like $spec-file-content, /'BuildRequires:  fdupes' \n 'BuildRequires:  rakudo >= 2017.04.2'/, "BuildRequires found in spec file";
-like $spec-file-content, /'Requires:       perl6 >= 2016.12' \n 'Requires:       perl6(Test)'/, "Requires found in spec file";
+like $spec-file-content, /'Requires:       perl6 >= 2016.12'/, "Requires found in spec file";
 like $spec-file-content, /'Provides:       perl6(IO::Prompt)'/, "Provides found in spec file";
 like $spec-file-content, /'BuildRoot:      %{_tmppath}/%{name}-%{version}-build'/, "BuildRoot found in spec file";
 

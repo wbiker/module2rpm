@@ -2,23 +2,25 @@ use Test;
 use File::Temp;
 
 use Module2Rpm::Helper;
-use Module2Rpm::Role::Download;
-use Module2Rpm::Download::Curl;
+use Module2Rpm::Role::Internet;
 
-class CurlReplacement does Module2Rpm::Role::Download {
+class ClientReplacement does Module2Rpm::Role::Internet {
     has @.return-strings = <" ">;
     has Int $!index = 0;
 
-    method Download(Str $url, IO::Path $path?) {
-        die "CurlReplacement: No more strings to return" if $!index >= @!return-strings.elems;
+    method get(Str $url) {
+        die "ClientReplacement: No more strings to return" if $!index >= @!return-strings.elems;
         return @!return-strings[$!index++];
     }
+
+    method delete(Str $url) {}
+    method put(Str $url, :$body) {}
 }
 
 {
     my $helper;
-    lives-ok { $helper = Module2Rpm::Helper.new(curl => CurlReplacement.new) }, "Creation of helper works without exceptions";
-    is $helper.curl.WHAT, CurlReplacement.WHAT, "Curl object is the expected one";
+    lives-ok { $helper = Module2Rpm::Helper.new(client => ClientReplacement.new) }, "Creation of helper works without exceptions";
+    is $helper.client.WHAT, ClientReplacement.WHAT, "client object is the expected one";
     ok $helper.is-meta-url("http://something.meta"), "Meta url recognized";
     nok $helper.is-meta-url("Module::Name"), "Name instead of meta url recognized";
     ok $helper.is-module-name("Module.:Name"), "Module name found";
@@ -99,7 +101,7 @@ class CurlReplacement does Module2Rpm::Role::Download {
     ]
     METAEND
 
-    my $helper = Module2Rpm::Helper.new(curl => CurlReplacement.new(return-strings => @download-return-strings));
+    my $helper = Module2Rpm::Helper.new(client => ClientReplacement.new(return-strings => @download-return-strings));
     my %all-metadata;
     lives-ok { %all-metadata = $helper.fetch-metadata() }, "Fetch-metadata does not die";
 
@@ -138,8 +140,8 @@ class CurlReplacement does Module2Rpm::Role::Download {
 }
 {
     my @return-for-download;
-    # To test create-package(), the return values for Curl.Download must be prepared. First the metadata from the JSONs URLs
-    # are expected.
+    # To test create-package(), the return values for client.get must be prepared. First the metadata
+    # from the JSONs URL are expected.
     @return-for-download.push(
         '[
             {
@@ -238,7 +240,7 @@ class CurlReplacement does Module2Rpm::Role::Download {
         }'
    );
 
-    my $helper = Module2Rpm::Helper.new(curl => CurlReplacement.new(return-strings => @return-for-download));
+    my $helper = Module2Rpm::Helper.new(client => ClientReplacement.new(return-strings => @return-for-download));
     throws-like { $helper.create-packages(path => "dummy".IO, file => "filedoesnotexists".IO) }, X::AdHoc, payload => /'does not exists'/;
 
     my ($tempfile) = tempfile();

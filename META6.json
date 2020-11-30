@@ -24,6 +24,7 @@
     "Module2Rpm::Role::Download": "lib/Module2Rpm/Role/Download.pm6",
     "Module2Rpm::Role::FindRpmWrapper": "lib/Module2Rpm/Role/FindRpmWrapper.pm6",
     "Module2Rpm::Role::Upload": "lib/Module2Rpm/Role/Upload.pm6",
+    "Module2Rpm::Role::internet": "lib/Module2Rpm/Role/internet.pm6",
     "Module2Rpm::Spec": "lib/Module2Rpm/Spec.pm6",
     "Module2Rpm::Upload::Cro::Client": "lib/Module2Rpm/Upload/Cro/Client.pm6",
     "Module2Rpm::Upload::OBS": "lib/Module2Rpm/Upload/OBS.pm6"

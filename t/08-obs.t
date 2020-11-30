@@ -2,12 +2,12 @@ use Test;
 use XML;
 use File::Temp;
 
-use Module2Rpm::Role::Upload;
+use Module2Rpm::Role::Internet;
 use Module2Rpm::Upload::OBS;
 use Module2Rpm::Spec;
 use Module2Rpm::Package;
 
-class ClientReplacement does Module2Rpm::Role::Upload {
+class ClientReplacement does Module2Rpm::Role::Internet {
     has Str $.get-url;
     has Str $.get-return is rw;
     has Str $.delete-url;
@@ -23,7 +23,8 @@ class ClientReplacement does Module2Rpm::Role::Upload {
         $!delete-url = $url;
 
     }
-    method put(Str $url, :$content-type?, :$body?) {
+
+    method put(Str $url, :$content-type, :$body) {
         $!put-stuff<url> = $url;
         $!put-stuff<content-type> = $content-type // "";
         $!put-stuff<body> = $body // "";
