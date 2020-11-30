@@ -45,10 +45,7 @@ class Module2Rpm::Spec {
                     if $!metadata<depends> ~~ Associative;
         }
 
-        my @test-requires = self.test-requires();
-        @requires.append(@test-requires) if @test-requires.elems > 0;
-
-        return @requires.map({"Requires:       $_"}).join("\n");
+        return @requires.grep( {$_} ).map({"Requires:       $_"}).join("\n");
     }
 
     method test-requires() {
@@ -81,10 +78,12 @@ class Module2Rpm::Spec {
         @requires.append: flat $!metadata<build-depends>.map({ self.map-dependency($_) })
                 if $!metadata<build-depends>;
         @requires.push: 'Distribution::Builder' ~ $!metadata<builder> if $!metadata<builder>;
-        return @requires.map({"BuildRequires:  $_"}).join("\n");
+        return @requires.grep( {$_} ).map({"BuildRequires:  $_"}).join("\n");
     }
 
     method map-dependency($requires is copy)  {
+        # Ignoring certain modules, otherwise OBS would complain about missing requirements.
+        return if self.is-ignored($requires);
         my %adverbs = flat ($requires ~~ s:g/':' $<key> = (\w+) '<' $<value> = (<-[>]>+) '>'//)
                 .map({$_<key>.Str, $_<value>.Str});
         given %adverbs<from> {
@@ -94,6 +93,11 @@ class Module2Rpm::Spec {
             when 'bin'    { '%{_bindir}/' ~ $requires }
             default       { "perl6($requires)" }
         }
+    }
+
+    method is-ignored($requires) {
+        # Ignore core modules:
+        return True if $requires ~~ /'NativeCall' | 'Test'/;
     }
 
     method get-summary() {

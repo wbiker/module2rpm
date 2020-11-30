@@ -66,15 +66,17 @@ class Module2Rpm::Package {
     #| Then the root folder is compressed with tar again and the archive file is copied to the destination.
     method Download() {
         my $download-dir = tempdir().IO;
-        my $downloaded-item = $download-dir.add($!module-name ~ ".tmp");
+        my $downloaded-item;
 
         if self.is-git-repository() {
+            $downloaded-item = $download-dir.add($!module-name-with-version);
             $!git.Download($!source-url, $downloaded-item);
             my $git-repo-tar-archive-path = $!tar.Compress($downloaded-item, $!tar-name);
             $git-repo-tar-archive-path.copy($!tar-archive-path);
             return;
         }
 
+        $downloaded-item = $download-dir.add($!module-name ~ ".tmp");
         # Download source as .tar.gz archive file in an temporary folder and extract it.
         $!curl.Download($!source-url, $downloaded-item);
         $!tar.Extract($downloaded-item);
