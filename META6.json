@@ -15,7 +15,7 @@
   "test-depends": [],
   "provides": {
     "Module2Rpm::Archive::Tar": "lib/Module2Rpm/Archive/Tar.pm6",
-    "Module2Rpm::Download::Curl": "lib/Module2Rpm/Download/Curl.pm6",
+    "Module2Rpm::Cro::Client": "lib/Module2Rpm/Cro/Client.pm6",
     "Module2Rpm::Download::Git": "lib/Module2Rpm/Download/Git.pm6",
     "Module2Rpm::FindRpmWrapper": "lib/Module2Rpm/FindRpmWrapper.pm6",
     "Module2Rpm::Helper": "lib/Module2Rpm/Helper.pm6",
@@ -26,7 +26,6 @@
     "Module2Rpm::Role::Upload": "lib/Module2Rpm/Role/Upload.pm6",
     "Module2Rpm::Role::internet": "lib/Module2Rpm/Role/internet.pm6",
     "Module2Rpm::Spec": "lib/Module2Rpm/Spec.pm6",
-    "Module2Rpm::Upload::Cro::Client": "lib/Module2Rpm/Upload/Cro/Client.pm6",
     "Module2Rpm::Upload::OBS": "lib/Module2Rpm/Upload/OBS.pm6"
   },
   "resources": [],

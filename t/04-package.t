@@ -6,15 +6,15 @@ use Module2Rpm::Spec;
 
 use Module2Rpm::Role::Download;
 
-class CurlReplacement does Module2Rpm::Role::Download {
+class ClientReplacement does Module2Rpm::Role::Internet {
     has Bool $.fail = False;
     has Str $.error = "";
 
-    method Download(Str $url, IO::Path $path?) {
+    method get(Str $url) {
         die $!error if $!fail;
-
-        $path.spurt("") if $path;
     }
+    method delete(Str $url) {}
+    method put(Str $url, :$content-type, :$body) {}
 }
 
 class GitReplacement does Module2Rpm::Role::Download {
@@ -64,19 +64,19 @@ is $package.tar-archive-path, "{$tempdir.add($package.module-name).add($package.
 is $package.source-url, 'http://www.cpan.org/authors/id/A/AR/ARNE/Perl6/p6-time-repeat-0.0101.tar.gz', "Source url is the expected one";
 is $package.spec-file-name, "{$module-name-prefix}Module-Name.spec", "Spec file name is the expected one";
 is $package.spec-file-path, "{$tempdir.add($package.module-name).add($package.spec-file-name)}", "Spec file path is the expected one";
-is $package.curl.WHAT, Module2Rpm::Download::Curl.WHAT, "Proper Curl default class is used";
+is $package.client.WHAT, Module2Rpm::Cro::Client.WHAT, "Proper Client default class is used";
 is $package.git.WHAT, Module2Rpm::Download::Git.WHAT, "Proper Git default class is used";
 is $package.tar.WHAT, Module2Rpm::Archive::Tar.WHAT, "Proper Tar default class is used";
 
 {
-    my $curl = CurlReplacement.new;
-    my $package = Module2Rpm::Package.new(spec => $spec, path => $tempdir, curl => $curl, git => GitReplacement.new, tar => TarReplacement.new);
+    my $client = ClientReplacement.new;
+    my $package = Module2Rpm::Package.new(spec => $spec, path => $tempdir, client => $client, git => GitReplacement.new, tar => TarReplacement.new);
 
     lives-ok { $package.Download() }, "Download does not die";
 }
 {
-    my $curl = CurlReplacement.new(fail => True, error => "Test exception");
-    my $package = Module2Rpm::Package.new(spec => $spec, path => $tempdir, curl => $curl, git => GitReplacement.new, tar => TarReplacement.new);
+    my $client = ClientReplacement.new(fail => True, error => "Test exception");
+    my $package = Module2Rpm::Package.new(spec => $spec, path => $tempdir, client => $client, git => GitReplacement.new, tar => TarReplacement.new);
     throws-like {$package.Download()}, X::AdHoc, payload => /'Test exception'/, "Package dies when something goes wrong";
 }
 

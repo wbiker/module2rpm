@@ -3,8 +3,9 @@ use File::Temp;
 use Module2Rpm::Spec;
 use Module2Rpm::Archive::Tar;
 use Module2Rpm::Download::Git;
-use Module2Rpm::Download::Curl;
 use Module2Rpm::Role::Download;
+use Module2Rpm::Role::Internet;
+use Module2Rpm::Cro::Client;
 
 class Module2Rpm::Package {
     #| Class that handles spec file parameter.
@@ -28,8 +29,8 @@ class Module2Rpm::Package {
     #| The readme file of the package.
     has IO::Path $.readme-file;
 
-    #| Class used to download via Curl.
-    has Module2Rpm::Role::Download $.curl;
+    #| Class used to download via Cro::HTTP::Client.
+    has Module2Rpm::Role::Internet $.client;
     #| Class used to clone with Git.
     has Module2Rpm::Role::Download $.git;
     #| Class used to compress, extract and list with Tar.
@@ -37,7 +38,7 @@ class Module2Rpm::Package {
 
     submethod BUILD(Module2Rpm::Spec :$spec,
             IO::Path :$path,
-            Module2Rpm::Role::Download :$curl = Module2Rpm::Download::Curl.new,
+            Module2Rpm::Role::Internet :$client = Module2Rpm::Cro::Client.new,
             Module2Rpm::Role::Download :$git = Module2Rpm::Download::Git.new,
             Module2Rpm::Role::Archive :$tar = Module2Rpm::Archive::Tar.new) {
 
@@ -56,7 +57,7 @@ class Module2Rpm::Package {
         $!spec-file-path = $!path.add($!spec-file-name);
         $!tar-archive-path = $!path.add($!tar-name);
 
-        $!curl = $curl;
+        $!client = $client;
         $!git = $git;
         $!tar = $tar;
     };
@@ -78,15 +79,17 @@ class Module2Rpm::Package {
 
         $downloaded-item = $download-dir.add($!module-name ~ ".tmp");
         # Download source as .tar.gz archive file in an temporary folder and extract it.
-        $!curl.Download($!source-url, $downloaded-item);
+        my $file-content = $!client.get($!source-url);
+        $downloaded-item.spurt($file-content);
         $!tar.Extract($downloaded-item);
 
         # Rename the root folder of the extracted archive to: perl6-<module-name>.
         my @top-level-dirs = $download-dir.dir.grep(* ~~ :d);
         die "Too many top level directories: @top-level-dirs" if @top-level-dirs.elems != 1;
-        my $top-level-dir = @top-level-dirs[0].basename;
         my $module-name-path = $download-dir.add($!module-name-with-version);
         @top-level-dirs[0].rename($module-name-path);
+
+        # Store readme file name for adding it to the spec file.
         $!readme-file = self.get-readme($module-name-path);
 
         # Compress sources with renamed folder as perl6-<module name>-<version>.tar.xz.

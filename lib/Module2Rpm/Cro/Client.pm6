@@ -1,5 +1,3 @@
-use JSON::Fast;
-
 use Cro::HTTP::Client;
 
 use Module2Rpm::Role::Internet;

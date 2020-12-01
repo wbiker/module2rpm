@@ -1,9 +1,6 @@
 #!/usr/bin/env raku
 
-use JSON::Fast;
-use File::Temp;
 use Config::Clever;
-use XML;
 use Cro::HTTP::Client;
 
 use Module2Rpm::Download::Git;
@@ -33,27 +30,6 @@ my $client = Module2Rpm::Cro::Client.new(auth => {
     username => $obs-user,
     password => $obs-password
 });
-
-multi MAIN('deleteallpackages') {
-    my $client = Module2Rpm::Cro::Client.new(auth => {
-        username => $obs-user,
-        password => $obs-password
-    });
-
-    my $obs = Module2Rpm::Upload::OBS.new(client => $client, project => $obs-project);
-    $obs.delete-all-packages();
-}
-
-multi MAIN('deletepackage', :$package-name) {
-    my $client = Module2Rpm::Cro::Client.new(auth => {
-        username => $obs-user,
-        password => $obs-password
-    });
-
-    my $obs = Module2Rpm::Upload::OBS.new(client => $client, project => $obs-project);
-
-   # $obs.delpack($package-name);
-}
 
 #| Prints the help.
 multi MAIN(:h(:$help)) {
