@@ -5,6 +5,25 @@ use Module2Rpm::Cro::Client;
 use Module2Rpm::Spec;
 use Module2Rpm::Package;
 
+=begin pod
+
+=head1 Module2Rpm::Helper
+
+Helper class for the module2rpm main script.
+
+=head2 Methods
+
+=head3 fetch-metadata()
+
+Downloads the metadata for Raku modules from the ecosystem and returns a hash with them. Keys are module names.
+
+=head3 create-packages(IO::Path :$path, IO::Path :$file)
+
+Goes through a given file and handles each line that does not start with an '#' as either metadata url or Raku module name.
+With the metadata a packages is created and finally all packages are returned as array.
+
+=end pod
+
 class Module2Rpm::Helper {
     has @metadata-sources =
             'https://raw.githubusercontent.com/ugexe/Perl6-ecosystems/master/cpan1.json',

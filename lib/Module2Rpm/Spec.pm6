@@ -1,6 +1,25 @@
 use Module2Rpm::Role::FindRpmWrapper;
 use Module2Rpm::FindRpmWrapper;
 
+
+=begin pod
+
+=head1 Module2Rpm::Spec
+
+Wrapper about all the data needed in an OBS spec file.
+
+=head1 DESCRIPTION
+
+This provides methods to get information about the data of a module.
+
+=head2 Methods
+
+=head3 get-spec-file(:$readme-file --> Str) {
+
+Returns the spec file content as Str.
+
+=end pod
+
 class Module2Rpm::Spec {
     has $.metadata is required;
     has $.requires = 'perl6 >= 2016.12';

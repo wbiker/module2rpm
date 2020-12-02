@@ -10,6 +10,16 @@ use Module2Rpm::Package;
 =head2 More Infos
     L<https://build.opensuse.org/apidocs/index>
 
+=head3 Methods
+
+=head4 create-package(Module2Rpm::Package :$package)
+
+Creates a package via API at https://build.opensuse.org
+
+=head4 upload-files(Module2Rpm::Package :$package!)
+
+Uploads the source tar archive file and the spec file of a package.
+
 =end pod
 
 class Module2Rpm::Upload::OBS {

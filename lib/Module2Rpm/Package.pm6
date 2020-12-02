@@ -7,32 +7,52 @@ use Module2Rpm::Role::Download;
 use Module2Rpm::Role::Internet;
 use Module2Rpm::Cro::Client;
 
+=begin pod
+
+=head1 Module2Rpm::Package
+
+This represents a Open Build Service package. See L<https://build.opensuse.org> for more information about OBS.
+A OBS package contains a tar archive with the source code and a spec file with the needed information for building RPM packages.
+
+=end pod
+
 class Module2Rpm::Package {
     #| Class that handles spec file parameter.
     has Module2Rpm::Spec $.spec is required;
+
     #| The path where the module source tarball and spec file are created.
     has IO::Path $.path;
+
     #| Name of the module with the pattern: perl6-<module name with :: replaced by ->.
     has Str $.module-name;
+
     #| Module name with version: perl6-<module-name>-<version>
     has Str $.module-name-with-version;
+
     #| The tarball file name with the pattern: perl6-<module name>-<version>.tar.xz.
     has Str $.tar-name;
+
     #| The source url found in the metadata.
     has Str $.source-url;
+
     #| The spec file name.
     has Str $.spec-file-name;
+
     #| Path of the local tar archive.
     has IO::Path $.tar-archive-path;
+
     #| Path of the local spec file.
     has IO::Path $.spec-file-path;
+
     #| The readme file of the package.
     has IO::Path $.readme-file;
 
     #| Class used to download via Cro::HTTP::Client.
     has Module2Rpm::Role::Internet $.client;
+
     #| Class used to clone with Git.
     has Module2Rpm::Role::Download $.git;
+
     #| Class used to compress, extract and list with Tar.
     has Module2Rpm::Role::Archive $.tar;
 
@@ -97,6 +117,7 @@ class Module2Rpm::Package {
         $tmp-tar-archive-path.copy($!tar-archive-path);
     }
 
+    #| Writes the spec file in the given path.
     method write-spec-file() {
         my $spec-file-content = $!spec.get-spec-file(readme-file => $!readme-file.IO);
         $!spec-file-path.spurt($spec-file-content);

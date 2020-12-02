@@ -1,5 +1,19 @@
 use Module2Rpm::Role::Download;
 
+=begin pod
+
+=head1 Module2Rpm::Download::Git
+
+Clones a git repository into a given path.
+
+=head1 SYNOPSIS
+
+=begin code
+Module2Rpm::Download::Git.new.Download($url, $path);
+=end code
+
+=end pod
+
 class Module2Rpm::Download::Git does Module2Rpm::Role::Download {
     method Download(Str $url, IO::Path $path) {
         # Git complains when the $path exists and is not empty. So check for more than '.' and '..'.

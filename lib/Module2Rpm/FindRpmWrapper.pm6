@@ -1,5 +1,20 @@
 use Module2Rpm::Role::FindRpmWrapper;
 
+=begin pod
+
+=head1 Module2Rpm::FindRpmWrapper
+
+This class is used for looking for the find-provides RPM command line tool and wrapping it.
+
+=head1 DESCRIPTION
+
+This class is used to find the path for a given library. When the find-provides tool was not found the default
+"%{_libdir}/library_name" is returned.
+
+=head1 SYNOPSIS
+
+=end pod
+
 class Module2Rpm::FindRpmWrapper does Module2Rpm::Role::FindRpmWrapper {
     has $.find-rpm-path = '/usr/lib/rpm/find-provides';
     has $.find-rpm-exists = False;

@@ -1,5 +1,44 @@
 use Cro::HTTP::Client;
 
+=begin pod
+
+=head1 Cro::HTTP::Client
+
+Wrapper for the Cro::HTTP::Client class.
+
+=head1 DESCRIPTION
+
+Encapsulates the get, put and delete method of the Cro::HTTP::Client class. For request with base authentication HTTP 1.1 is used.
+
+=head1 SYNOPSIS
+
+=begin code
+my $client = Module2Rpm::Cro::Client.new(auth => {
+    username => "user",
+    password => "password"
+});
+
+my $message-body = $client.get('https://docs.raku.org');
+$client.put($url, body => "something", content-type => "text/HTML);
+$client.delete($url);
+=end code
+
+=head1 Methods
+
+=head2 get(Str $url)
+
+Returns the body of an requested URL
+
+=head2 put(Str $url, :$body, :$content-type = "text/html")
+
+Puts some data to a URL.
+
+=head2 delete(Str $url)
+
+Deletes a resource at a URL
+
+=end pod
+
 use Module2Rpm::Role::Internet;
 
 class Module2Rpm::Cro::Client does Module2Rpm::Role::Internet {
