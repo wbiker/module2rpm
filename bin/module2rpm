@@ -1,5 +1,6 @@
 #!/usr/bin/env raku
 
+use File::Temp;
 use Config::Clever;
 use Cro::HTTP::Client;
 
@@ -13,9 +14,8 @@ use Module2Rpm::Cro::Client;
 
 my $helper = Module2Rpm::Helper.new;
 
-# Where the source code and the spec files are stored. At the moment a directory in the root folder is used.
-# In the future a temporary directory will be used once the OBS upload works.
-my $destination-path = "./packages".IO;
+# Place where all source archives and spec files will be saved before uploading.
+my $destination-path = tempdir().IO;
 
 my %config = Config::Clever.load();
 # Config for Open Build Service.
