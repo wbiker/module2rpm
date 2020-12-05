@@ -3,6 +3,7 @@
 use File::Temp;
 use Config::Clever;
 use Cro::HTTP::Client;
+use JSON::Fast;
 
 use Module2Rpm::Download::Git;
 use Module2Rpm::Archive::Tar;
@@ -17,7 +18,25 @@ my $helper = Module2Rpm::Helper.new;
 # Place where all source archives and spec files will be saved before uploading.
 my $destination-path = tempdir().IO;
 
-my %config = Config::Clever.load();
+# Load config from home folder: HOME/.config/module2rpm/default.json
+my $config-dir = $*HOME.add('.config');
+$config-dir.mkdir unless $config-dir.e;
+$config-dir .= add('module2rpm');
+$config-dir.mkdir unless $config-dir.e;
+
+my $config-file = $config-dir.add('default.json');
+unless $config-file.e {
+    say "Config does not exists. Create $config-file";
+    my %new-config;
+    %new-config<obs-user> = prompt "Enter OBS user: ";
+    %new-config<obs-password> = prompt "Enter OBS password: ";
+    %new-config<obs-project> = prompt "Enter OBS project: ";
+
+    $config-file.spurt(to-json(%new-config));
+}
+
+say "Load config: $config-dir";
+my %config = Config::Clever.load(config-dir => $config-dir);
 # Config for Open Build Service.
 # User using the OBS API: https://api.opensuse.org
 my $obs-user = %config<obs-user>;
