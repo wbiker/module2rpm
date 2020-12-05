@@ -241,7 +241,7 @@ class ClientReplacement does Module2Rpm::Role::Internet {
    );
 
     my $helper = Module2Rpm::Helper.new(client => ClientReplacement.new(return-strings => @return-for-download));
-    throws-like { $helper.create-packages(path => "dummy".IO, file => "filedoesnotexists".IO) }, X::AdHoc, payload => /'does not exists'/;
+    throws-like { $helper.create-packages(path => tempdir().IO, file => "filedoesnotexists".IO) }, X::AdHoc, payload => /'does not exists'/;
 
     my ($tempfile) = tempfile();
     $tempfile .= IO;
@@ -251,7 +251,7 @@ class ClientReplacement does Module2Rpm::Role::Internet {
         http://www.cpan.org/authors/id/W/WA/WARRINGD/Perl6/CSS-0.0.5.meta
         END
     );
-    my @packages = $helper.create-packages(path => "dummy".IO, file => $tempfile);
+    my @packages = $helper.create-packages(path => tempdir().IO, file => $tempfile);
     is @packages[0].module-name(), "perl6-IO-Prompt", "create-packages has first module";
     is @packages[1].module-name(), "perl6-CSS", "create-packages has second module";
 }
