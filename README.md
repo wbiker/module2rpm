@@ -15,6 +15,8 @@ SYNOPSIS
 DESCRIPTION
 ===========
 
+Please, note: This is still not a 1.0 release. Modules with certain dependencies might fail.
+
 This program downloads the source of a given Raku module, writes the spec file with the module
 metadata and uploaded them to Open Build Service (OBS).
 There are two commandline parameter:
