@@ -1,9 +1,10 @@
 {
-  "name": "Module2Rpm",
-  "description": "Create RPM's from raku modules.",
-  "version": "0.1",
-  "perl": "6.*",
   "auth": "wbiker",
+  "authors": [
+    "wolf"
+  ],
+  "build-depends": [
+  ],
   "depends": [
     "File::Temp",
     "JSON::Fast",
@@ -11,8 +12,10 @@
     "XML",
     "Config::Clever"
   ],
-  "build-depends": [],
-  "test-depends": [],
+  "description": "Create RPM's from raku modules.",
+  "license": "Apache License 2.0",
+  "name": "Module2Rpm::Spec",
+  "perl": "6.*",
   "provides": {
     "Module2Rpm::Archive::Tar": "lib/Module2Rpm/Archive/Tar.rakumod",
     "Module2Rpm::Cro::Client": "lib/Module2Rpm/Cro/Client.rakumod",
@@ -27,7 +30,12 @@
     "Module2Rpm::Spec": "lib/Module2Rpm/Spec.rakumod",
     "Module2Rpm::Upload::OBS": "lib/Module2Rpm/Upload/OBS.rakumod"
   },
-  "resources": [],
-  "license": "Apache License 2.0",
-  "source-url": "https://github.com/wbiker/module2rpm"
+  "resources": [
+  ],
+  "source-url": "https://github.com/wbiker/module2rpm",
+  "tags": [
+  ],
+  "test-depends": [
+  ],
+  "version": "0.1"
 }
