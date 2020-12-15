@@ -1,9 +1,9 @@
 use Test;
 use File::Temp;
 
-use Module2Rpm::FindRpmWrapper;
+use Module2Rpm::FindLibraryNameWithFindProvides;
 
-my $frw = Module2Rpm::FindRpmWrapper.new;
+my $frw = Module2Rpm::FindLibraryNameWithFindProvides.new;
 
 if $frw.find-rpm-path.IO.e {
     ok $frw.find-rpm-exists, "Bool is true when find-rpm executable was found.";

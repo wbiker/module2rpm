@@ -1,5 +1,5 @@
-use Module2Rpm::Role::FindRpmWrapper;
-use Module2Rpm::FindRpmWrapper;
+use Module2Rpm::Role::FindLibraryName;
+use Module2Rpm::FindLibraryNameWithFindProvides;
 
 
 =begin pod
@@ -24,7 +24,7 @@ class Module2Rpm::Spec {
     has $.metadata is required;
     has $.requires = 'perl6 >= 2016.12';
     has $.build-requires = "rakudo >= 2017.04.2";
-    has Module2Rpm::Role::FindRpmWrapper $.find-rpm = Module2Rpm::FindRpmWrapper.new;
+    has Module2Rpm::Role::FindLibraryName $.find-rpm = Module2Rpm::FindLibraryNameWithFindProvides.new;
 
     method get-source-url( --> Str) {
         return $!metadata<source-url> || $!metadata<support><source>;
