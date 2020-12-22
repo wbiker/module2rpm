@@ -1,26 +1,15 @@
 use Test;
 use File::Temp;
 
+use lib './t/lib';
+
 use Module2Rpm::Helper;
-use Module2Rpm::Role::Internet;
-
-class ClientReplacement does Module2Rpm::Role::Internet {
-    has @.return-strings = <" ">;
-    has Int $!index = 0;
-
-    method get(Str $url) {
-        die "ClientReplacement: No more strings to return" if $!index >= @!return-strings.elems;
-        return @!return-strings[$!index++];
-    }
-
-    method delete(Str $url) {}
-    method put(Str $url, :$body) {}
-}
+use Mocks;
 
 {
     my $helper;
-    lives-ok { $helper = Module2Rpm::Helper.new(client => ClientReplacement.new) }, "Creation of helper works without exceptions";
-    is $helper.client.WHAT, ClientReplacement.WHAT, "client object is the expected one";
+    lives-ok { $helper = Module2Rpm::Helper.new(client => Mocks::ClientReplacement.new) }, "Creation of helper works without exceptions";
+    is $helper.client.WHAT, Mocks::ClientReplacement.WHAT, "client object is the expected one";
     ok $helper.is-meta-url("http://something.meta"), "Meta url recognized";
     nok $helper.is-meta-url("Module::Name"), "Name instead of meta url recognized";
     ok $helper.is-module-name("Module.:Name"), "Module name found";
@@ -101,7 +90,7 @@ class ClientReplacement does Module2Rpm::Role::Internet {
     ]
     METAEND
 
-    my $helper = Module2Rpm::Helper.new(client => ClientReplacement.new(return-strings => @download-return-strings));
+    my $helper = Module2Rpm::Helper.new(client => Mocks::ClientReplacement.new(get_return_strings => @download-return-strings));
     my %all-metadata;
     lives-ok { %all-metadata = $helper.fetch-metadata() }, "Fetch-metadata does not die";
 
@@ -240,7 +229,7 @@ class ClientReplacement does Module2Rpm::Role::Internet {
         }'
    );
 
-    my $helper = Module2Rpm::Helper.new(client => ClientReplacement.new(return-strings => @return-for-download));
+    my $helper = Module2Rpm::Helper.new(client => Mocks::ClientReplacement.new(get_return_strings => @return-for-download));
     throws-like { $helper.create-packages(path => tempdir().IO, file => "filedoesnotexists".IO) }, X::AdHoc, payload => /'does not exists'/;
 
     my ($tempfile) = tempfile();

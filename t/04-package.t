@@ -1,45 +1,11 @@
 use Test;
 use File::Temp;
 
+use lib './t/lib';
+
 use Module2Rpm::Package;
 use Module2Rpm::Spec;
-
-use Module2Rpm::Role::Download;
-
-class ClientReplacement does Module2Rpm::Role::Internet {
-    has Bool $.fail = False;
-    has Str $.error = "";
-
-    method get(Str $url) {
-        die $!error if $!fail;
-    }
-    method delete(Str $url) {}
-    method put(Str $url, :$content-type, :$body) {}
-}
-
-class GitReplacement does Module2Rpm::Role::Download {
-    method Download(Str $url, IO::Path $path) {
-    }
-}
-
-class TarReplacement does Module2Rpm::Role::Archive {
-    method Compress(IO::Path $path, Str $name --> IO::Path) {
-        my IO::Path $return-object = $path.parent.add($name);
-        $return-object.spurt("");
-
-        return $return-object;
-    }
-    method Extract(IO::Path $path) {
-        $path.parent.add('test').mkdir;
-        $path.unlink;
-    }
-    method List(IO::Path $path --> Array) {
-        return <test/file
-                test/file1
-                test/subtest/file
-                test/subtest/file2>
-    }
-}
+use Mocks;
 
 my $module-name-prefix = "perl6-";
 
@@ -69,14 +35,14 @@ is $package.git.WHAT, Module2Rpm::Download::Git.WHAT, "Proper Git default class 
 is $package.tar.WHAT, Module2Rpm::Archive::Tar.WHAT, "Proper Tar default class is used";
 
 {
-    my $client = ClientReplacement.new;
-    my $package = Module2Rpm::Package.new(spec => $spec, path => $tempdir, client => $client, git => GitReplacement.new, tar => TarReplacement.new);
+    my $client = Mocks::ClientReplacement.new;
+    my $package = Module2Rpm::Package.new(spec => $spec, path => $tempdir, client => $client, git => Mocks::GitReplacement.new, tar => Mocks::TarReplacement.new);
 
     lives-ok { $package.Download() }, "Download does not die";
 }
 {
-    my $client = ClientReplacement.new(fail => True, error => "Test exception");
-    my $package = Module2Rpm::Package.new(spec => $spec, path => $tempdir, client => $client, git => GitReplacement.new, tar => TarReplacement.new);
+    my $client = Mocks::ClientReplacement.new(fail => True, error => "Test exception");
+    my $package = Module2Rpm::Package.new(spec => $spec, path => $tempdir, client => $client, git => Mocks::GitReplacement.new, tar => Mocks::TarReplacement.new);
     throws-like {$package.Download()}, X::AdHoc, payload => /'Test exception'/, "Package dies when something goes wrong";
 }
 
