@@ -53,3 +53,16 @@ class Mocks::TarReplacement does Module2Rpm::Role::Archive {
                 test/subtest/file2>
     }
 }
+
+class Mocks::GzipMock does Module2Rpm::Role::Archive {
+    has @.extract-returns = " ";
+    has $.extract-index = 0;
+
+    method Compress(IO::Path $path, Str $name --> IO::Path) { die "Not implemented yet" }
+    method List(IO::Path $path --> Seq) { die "Not implemented yet" }
+    method Extract(IO::Path $path) {
+        die "GzipMock: No more strings to return" if $!extract-index >= @!extract-returns.elems;
+
+        return @!extract-returns[$!extract-index++];
+    }
+}
