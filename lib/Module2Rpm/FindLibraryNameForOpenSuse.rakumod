@@ -70,7 +70,7 @@ method download-file() {
     try {
         $repomd = $!client.get($!repodata ~ $!repodata-repomd-xml);
 
-        CATCH { default { warn "Could not download repo xml file to look for the OpenSuse RPM library packages."; $!download-successful = False; } }
+        CATCH { default { warn "Could not download repo xml file to look for the OpenSuse RPM library packages."; $!download-successful = False; return; } }
     }
 
     my $xml = from-xml($repomd);
@@ -99,9 +99,8 @@ method download-file() {
     try {
         $file-content = $!gzip.Extract($compressed-file);
 
-        CATCH { default { say $_.payload; $!download-successful = False } }
+        CATCH { default { warn "Could not extract compressed package xml file"; $!download-successful = False; return; } }
     }
 
     $!primary-xml = $file-content;
-
 }
