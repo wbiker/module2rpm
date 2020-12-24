@@ -96,7 +96,7 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
     is $spec.requires(), chomp(q:to/SPEC/), "Requires returns several runtime dependencies";
         Requires:       perl6 >= 2016.12
         Requires:       perl6(NativeLibs)
-        Requires:       %{_libdir}/libgpgme.so
+        Requires:       libgpgme.so.11()(64bit)
         SPEC
 }
 
