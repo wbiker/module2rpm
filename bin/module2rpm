@@ -1,5 +1,4 @@
 #!/usr/bin/env raku
-
 use File::Temp;
 use Config::Clever;
 use Cro::HTTP::Client;
@@ -12,6 +11,8 @@ use Module2Rpm::Package;
 use Module2Rpm::Helper;
 use Module2Rpm::Upload::OBS;
 use Module2Rpm::Cro::Client;
+
+our $*DEBUG = False;
 
 my $helper = Module2Rpm::Helper.new;
 

@@ -39,6 +39,7 @@ method find-rpm(:%adverbs, IO::Path :$requires) {
 
     if not %adverbs<ver> {
         #note "Package doesn't specify a library version, so I have to fall back to depending on library path.";
+        say "FindLibraryNameForOpenSuse: $requires does not have an version" if $*DEBUG;
         if $requires eq 'perl' {
             return 'libperl.so()(64bit)';
         }
@@ -50,10 +51,15 @@ method find-rpm(:%adverbs, IO::Path :$requires) {
     my $libname = $*VM.platform-library-name($requires);
     $libname ~= "." ~ %adverbs<ver> ~ '()(64bit)';
 
+    say "FindLibraryNameForOpenSuse.find-rpm: Look for $libname in OpenSuse's package xml file" if $*DEBUG;
     if $!primary-xml.contains($libname) {
+        say "FindLibraryNameForOpenSuse.find-rpm: $libname found in package xml file" if $*DEBUG;
         return $libname;
     }
 
+    "tmp.txt".IO.spurt($!primary-xml);
+
+    say "FindLibraryNameForOpenSuse.find-rpm: $libname not found as OpenSuse package. Return default $default-libdir" if $*DEBUG;
     return $default-libdir;
 }
 
@@ -68,11 +74,15 @@ method download-file() {
     }
 
     my $xml = from-xml($repomd);
+    say "FindLibraryNameForOpenSuse: Look for primary xml tag." if $*DEBUG;
     my $repomd-xml = $xml.root.nodes.grep(* ~~ XML::Element).grep({$_.attribs<type>.defined and $_.attribs<type> eq "primary"}).first;
     do { $!download-successful = False; warn "Could not find OpenSuse's RPM library package file."; return; } unless $repomd-xml;
+
+    say "FindLibraryNameForOpenSuse: Look for primary file name" if $*DEBUG;
     my $primary-file-name = $repomd-xml.nodes.grep({ $_ ~~ XML::Element }).grep(*.name eq "location").first.attribs<href>;
     do { $!download-successful = False; warn "Could not find OpenSuse's RPM library package file."; return; } unless $primary-file-name;
 
+    say "FindLibraryNameForOpenSuse: Download primary file" if $*DEBUG;
     my $primary-file-content = $!client.get($!repodata ~ $primary-file-name);
     unless $primary-file-content {
         warn "Could not download OpenSuse'S RPM library package file: {$!repodata}{$primary-file-name}";
@@ -80,14 +90,18 @@ method download-file() {
         return;
     }
 
+    say "FindLibraryNameForOpenSuse: Write compressed primary file." if $*DEBUG;
     my $tempdir = tempdir().IO;
     my $compressed-file = $tempdir.add("compressedfile.gz");
     $compressed-file.spurt($primary-file-content, :bin);
-    my $file-content = $!gzip.Extract($compressed-file);
-    if not $file-content {
-        $!download-successful = False;
-        return;
+    say "FindLibraryNameForOpenSuse: Extract primary file" if $*DEBUG;
+    my $file-content = "";
+    try {
+        $file-content = $!gzip.Extract($compressed-file);
+
+        CATCH { default { say $_.payload; $!download-successful = False } }
     }
 
     $!primary-xml = $file-content;
+
 }
