@@ -1,5 +1,6 @@
 use Module2Rpm::Role::FindLibraryName;
 use Module2Rpm::FindLibraryNameWithFindProvides;
+use Module2Rpm::FindLibraryNameForOpenSuse;
 
 
 =begin pod
@@ -24,7 +25,7 @@ class Module2Rpm::Spec {
     has $.metadata is required;
     has $.requires = 'perl6 >= 2016.12';
     has $.build-requires = "rakudo >= 2017.04.2";
-    has Module2Rpm::Role::FindLibraryName $.find-rpm = Module2Rpm::FindLibraryNameWithFindProvides.new;
+    has Module2Rpm::Role::FindLibraryName $.find-rpm = Module2Rpm::FindLibraryNameForOpenSuse.new;
 
     method get-source-url( --> Str) {
         return $!metadata<source-url> || $!metadata<support><source>;
@@ -32,14 +33,14 @@ class Module2Rpm::Spec {
 
     #| Returns the module name changed to perl6-<module name with '::' replaced by '-'>.
     method get-name( --> Str) {
-        die "Metadata does not provide module name!" unless $!metadata<name>;
+        die "Spec: Metadata does not provide module name!" unless $!metadata<name>;
 
         return "perl6-{ $!metadata<name>.subst: /'::'/, '-', :g }"
     }
 
     #| Returns the version found in the metadata. For '*' versions 0.1 is returned.
     method get-version() {
-        die "No version found in metadata" unless $!metadata<version>;
+        die "Spec: No version found in metadata" unless $!metadata<version>;
 
         return $!metadata<version> eq '*' ?? '0.1' !! $!metadata<version>;
     }
@@ -47,7 +48,7 @@ class Module2Rpm::Spec {
     #| Returns a list of the provided files with the pattern:
     #| Provides:       perl6(<name of the provided file>)
     method provides() {
-        die "Metadata does not provide a module name" unless $!metadata<name>;
+        die "Spec: Metadata does not provide a module name" unless $!metadata<name>;
 
         return ($!metadata<name>, |$!metadata<provides>.keys).unique.sort.map({"Provides:       perl6($_)"}).join("\n");
     }
@@ -101,12 +102,14 @@ class Module2Rpm::Spec {
     }
 
     method map-dependency($requires is copy)  {
+        say "SPEC.map-dependency: $requires" if $*DEBUG;
         # Ignoring certain modules, otherwise OBS would complain about missing requirements.
         return if self.is-ignored($requires);
         my %adverbs = flat ($requires ~~ s:g/':' $<key> = (\w+) '<' $<value> = (<-[>]>+) '>'//)
                 .map({$_<key>.Str, $_<value>.Str});
         given %adverbs<from> {
             when 'native' {
+                say "Spec.map-dependency: Look for native library name: $requires" if $*DEBUG;
                 return $!find-rpm.find-rpm(:%adverbs, requires => $requires.IO);
             }
             when 'bin'    { '%{_bindir}/' ~ $requires }
