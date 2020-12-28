@@ -32,10 +32,22 @@ class Module2Rpm::Helper {
     has Module2Rpm::Role::Internet $.client = Module2Rpm::Cro::Client.new;
 
     method fetch-metadata( --> Hash) {
-        my %all-metadata = @!metadata-sources
+        my %all-metadata;
+        my @all-metadata-unfiltered = @!metadata-sources
                 .map({from-json($!client.get($_))})
-                .flat
-                .map({$_<name> => $_ }).Hash;
+                .flat;
+
+        # Filter for versions, otherwise not the metadata with the latest version could be in %all-metadata.
+        for @all-metadata-unfiltered -> $metadata {
+            if not %all-metadata{$metadata<name>}:exists {
+               %all-metadata{$metadata<name>} = $metadata;
+                next;
+            }
+
+            if Version.new($metadata<version>) > Version.new(%all-metadata{$metadata<name>}<version>)  {
+                %all-metadata{$metadata<name>} = $metadata;
+            }
+        }
 
         return %all-metadata;
     }

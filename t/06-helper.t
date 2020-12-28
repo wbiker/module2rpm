@@ -244,5 +244,36 @@ use Mocks;
     is @packages[0].module-name(), "perl6-IO-Prompt", "create-packages has first module";
     is @packages[1].module-name(), "perl6-CSS", "create-packages has second module";
 }
+{
+    my @download-return-strings;
+    @download-return-strings.push(q:to/META/);
+    [
+        {
+          "name": "Test::Module::For::Version",
+          "version": "1.0.0"
+        }
+    ]
+    META
+    @download-return-strings.push(q:to/METAEND/);
+    [
+        {
+              "name": "Test::Module::For::Version",
+              "version": "0.0.1"
+        }
+    ]
+    METAEND
 
+    my $helper = Module2Rpm::Helper.new(client => Mocks::ClientReplacement.new(get_return_strings => @download-return-strings));
+    my %all-metadata;
+    lives-ok { %all-metadata = $helper.fetch-metadata() }, "Fetch-metadata does not die";
+
+    my %expected-metadata = ${
+        "Test::Module::For::Version" => ${
+            :name("Test::Module::For::Version"),
+            :version("1.0.0")
+        },
+    }
+
+    is-deeply %all-metadata, %expected-metadata, "Recieved metadata with different versions are the expected one";
+}
 done-testing;
