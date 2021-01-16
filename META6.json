@@ -21,6 +21,7 @@
     "Module2Rpm::FindOpenSuseLibraries": "lib/Module2Rpm/FindOpenSuseLibraries.pm6",
     "Module2Rpm::FindRpmWrapper": "lib/Module2Rpm/FindRpmWrapper.rakumod",
     "Module2Rpm::Helper": "lib/Module2Rpm/Helper.rakumod",
+    "Module2Rpm::Internet::LWP": "lib/Module2Rpm/Internet/LWP.pm6",
     "Module2Rpm::Package": "lib/Module2Rpm/Package.rakumod",
     "Module2Rpm::Role::Archive": "lib/Module2Rpm/Role/Archive.rakumod",
     "Module2Rpm::Role::Download": "lib/Module2Rpm/Role/Download.rakumod",
