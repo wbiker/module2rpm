@@ -63,7 +63,11 @@ multi MAIN(:$file!) {
 
     for @packages -> $package {
         say "{$package.spec.get-name()}: Download source...";
-        $package.Download();
+        try {
+            $package.Download();
+
+            CATCH { default { say $_; next; }}
+        }
         say "{$package.spec.get-name()}: Write spec file...";
         $package.write-spec-file();
 

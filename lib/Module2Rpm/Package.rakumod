@@ -99,7 +99,13 @@ class Module2Rpm::Package {
 
         $downloaded-item = $download-dir.add($!module-name ~ ".tmp");
         # Download source as .tar.gz archive file in an temporary folder and extract it.
-        my $file-content = $!client.get($!source-url);
+        my $file-content;
+        try {
+            $file-content = $!client.get($!source-url);
+
+            CATCH { default { die "Could not download module source: {$!source-url} - {$_.message()}" }; }
+        }
+
         $downloaded-item.spurt($file-content);
         $!tar.Extract($downloaded-item);
 
@@ -115,6 +121,7 @@ class Module2Rpm::Package {
         # Compress sources with renamed folder as perl6-<module name>-<version>.tar.xz.
         my $tmp-tar-archive-path = $!tar.Compress($module-name-path, $!tar-name);
         $tmp-tar-archive-path.copy($!tar-archive-path);
+
     }
 
     #| Writes the spec file in the given path.
