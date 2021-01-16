@@ -23,8 +23,9 @@ my $tar = Module2Rpm::Archive::Tar.new;
     my $tar-file-path = create-tar-archive-from-directory($temp-dir, $tar-file-name);
     is $tar-file-path.Str, $expected-tar-file-path, "Tar file created";
 
-    my $expected-list = <archive/ archive/file2 archive/dir1/ archive/dir1/file1 archive/dir/ archive/dir/file>.Seq;
-    is-deeply($tar.List($tar-file-path), $expected-list, "Archive file list is the expected one");
+    my $expected-list = <archive/ archive/file2 archive/dir1/ archive/dir1/file1 archive/dir/ archive/dir/file>.sort.Seq;
+    my $file-list = $tar.List($tar-file-path).sort;
+    is-deeply($file-list, $expected-list, "Archive file list is the expected one");
 }
 
 {
