@@ -102,7 +102,7 @@ class Module2Rpm::Spec {
     }
 
     method map-dependency($requires is copy)  {
-        say "SPEC.map-dependency: $requires" if $*DEBUG;
+        say "SPEC.map-dependency: '$requires'" if $*DEBUG;
         # Ignoring certain modules, otherwise OBS would complain about missing requirements.
         return if self.is-ignored($requires);
         my %adverbs = flat ($requires ~~ s:g/':' $<key> = (\w+) '<' $<value> = (<-[>]>+) '>'//)
@@ -112,14 +112,18 @@ class Module2Rpm::Spec {
                 say "Spec.map-dependency: Look for native library name: $requires" if $*DEBUG;
                 return $!find-rpm.find-rpm(:%adverbs, requires => $requires.IO);
             }
-            when 'bin'    { '%{_bindir}/' ~ $requires }
-            default       { "perl6($requires)" }
+            when 'bin'    { return '%{_bindir}/' ~ $requires }
+            default       { return "perl6($requires)" }
         }
+
+        say "Spec.map-dependency: Library name '$requires'" if $*DEBUG;
     }
 
     method is-ignored($requires) {
         # Ignore core modules:
-        return True if $requires ~~ /'NativeCall' | 'Test'/;
+        return True if $requires ~~ /'NativeCall' | 'Test' /;
+
+        return False;
     }
 
     method get-summary() {

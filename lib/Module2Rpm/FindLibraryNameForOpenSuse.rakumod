@@ -41,6 +41,7 @@ method find-rpm(:%adverbs, IO::Path :$requires) {
         #note "Package doesn't specify a library version, so I have to fall back to depending on library path.";
         say "FindLibraryNameForOpenSuse: $requires does not have an version" if $*DEBUG;
         if $requires eq 'perl' {
+            say "FindLibraryNameForOpenSuse: Perl library name libperl.so()(64bit)" if $*DEBUG;
             return 'libperl.so()(64bit)';
         }
         return $default-libdir;
