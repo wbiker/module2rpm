@@ -1,0 +1,34 @@
+use Test;
+
+use lib './t/lib';
+
+use Module2Rpm::Role::Internet;
+use Module2Rpm::Internet::LWP;
+
+class LwpReplacement {
+    has Str $.return_string;
+    has Str $.url;
+
+    method get(Str $url) {
+        $!url = $url;
+        return $!return_string;
+    }
+
+    method put(Str $url, :$content-type, :$body) {}
+
+    method delete(Str $url) {}
+
+}
+
+my $lwp_replacement = LwpReplacement.new(return_string => "Get Return");
+
+my $lwp = Module2Rpm::Internet::LWP.new(lwp => $lwp_replacement);
+
+my $ret = $lwp.get("asdasd");
+is $ret, "Get Return", "get returned string";
+is $lwp_replacement.url, "asdasd", "Url is passed";
+
+throws-like {$lwp.put("sdsd", content-type => "text/html", body => "body")}, X::NYI;
+throws-like {$lwp.delete("sdsd")}, X::NYI;
+
+done-testing;
