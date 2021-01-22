@@ -21,7 +21,7 @@ Returns the spec file content as Str.
 
 =end pod
 
-class Module2Rpm::Spec:ver<0.0.2> {
+class Module2Rpm::Spec:ver<0.0.3> {
     has $.metadata is required;
     has $.requires = 'perl6 >= 2016.12';
     has $.build-requires = "rakudo >= 2017.04.2";
