@@ -1,5 +1,5 @@
 {
-  "auth": "wbiker",
+  "auth": "zef:wbiker",
   "authors": [
     "wolf"
   ],
@@ -14,7 +14,7 @@
   ],
   "description": "Create RPM's from raku modules.",
   "license": "Apache License 2.0",
-  "name": "Module2Rpm::Spec",
+  "name": "Module2Rpm",
   "perl": "6.*",
   "provides": {
     "Module2Rpm::Archive::Gzip": "lib/Module2Rpm/Archive/Gzip.pm6",
