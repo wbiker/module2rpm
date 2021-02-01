@@ -49,8 +49,8 @@ class Module2Rpm::Helper {
     method fetch-metadata( --> Hash) {
         my %all-metadata;
         my @all-metadata-unfiltered = @!metadata-sources
-                .map({from-json($!client.get($_))})
-                .flat;
+            .map({ from-json($!client.get($_))})
+            .flat;
 
         # Filter for versions, otherwise not the metadata with the latest version could be in %all-metadata.
         for @all-metadata-unfiltered -> $metadata {

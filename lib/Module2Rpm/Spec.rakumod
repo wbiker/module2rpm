@@ -33,7 +33,7 @@ class Module2Rpm::Spec:ver<0.0.3> {
 
     #| Returns the module name changed to perl6-<module name with '::' replaced by '-'>.
     method get-name( --> Str) {
-        die "Spec: Metadata does not provide module name!" unless $!metadata<name>;
+        die "Spec: Metadata does not provide module name!\n" ~ $!metadata.raku unless $!metadata<name>;
 
         return "perl6-{ $!metadata<name>.subst: /'::'/, '-', :g }"
     }

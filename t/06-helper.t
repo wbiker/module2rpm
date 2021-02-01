@@ -19,6 +19,7 @@ use Mocks;
 {
     my @download-return-strings;
     @download-return-strings.push(q:to/META/);
+    [
         {
           "auth": "github:arjancwidlak",
           "authors": "Arjan Widlak <acw@cpan.org",
@@ -50,8 +51,10 @@ use Mocks;
           ],
           "version": "1.0.0"
         }
+    ]
     META
     @download-return-strings.push(q:to/METAEND/);
+    [
         {
               "authors": [
                 "Takumi Akiyama"
@@ -84,6 +87,7 @@ use Mocks;
               ],
               "version": "0.0.1"
         }
+    ]
     METAEND
 
     my $helper = Module2Rpm::Helper.new(client => Mocks::ClientReplacement.new(get_return_strings => @download-return-strings));
@@ -128,7 +132,7 @@ use Mocks;
     # To test create-package(), the return values for client.get must be prepared. First the metadata
     # from the JSONs URL are expected.
     @return-for-download.push(
-        '
+        '[
             {
                 "authors": [
                     "pnu",
@@ -151,11 +155,11 @@ use Mocks;
                 ],
                 "version": "0.0.2"
             }
-        '
+            ]'
     );
     # Then the json string from a source url:
     @return-for-download.push(
-        '
+        '[
             {
                 "depends" : [
                     "LibXML",
@@ -188,8 +192,10 @@ use Mocks;
                 ],
                 "version" : "0.0.5"
             }
-        '
+            ]'
     );
+    # This is the return string from the metadata download.
+    # Must not be an array.
     @return-for-download.push(
         '{
             "depends" : [
@@ -243,20 +249,20 @@ use Mocks;
 {
     my @download-return-strings;
     @download-return-strings.push(q:to/META/);
-    
+    [
         {
           "name": "Test::Module::For::Version",
           "version": "1.0.0"
         }
-    
+    ]
     META
     @download-return-strings.push(q:to/METAEND/);
-    
+    [
         {
               "name": "Test::Module::For::Version",
               "version": "0.0.1"
         }
-    
+    ]
     METAEND
 
     my $helper = Module2Rpm::Helper.new(client => Mocks::ClientReplacement.new(get_return_strings => @download-return-strings));
