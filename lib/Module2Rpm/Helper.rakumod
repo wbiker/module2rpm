@@ -44,13 +44,25 @@ class Module2Rpm::Helper {
     #      in block  at /home/wolf/.rakubrew/versions/moar-2020.09/install/share/perl6/site/sources/2FD61B909A901DA559CEDBC72E222C0CE26736D7 (Cro::HTTP2::FrameParser) line 45
     #      in block  at /home/wolf/.rakubrew/versions/moar-2020.09/install/share/perl6/site/sources/DDDD3607B617AC6B7DCA0D086AD3F4247AC394E9 (Cro::TLS) line 88
     # The fix is just to use LWP instead.
+    #has Module2Rpm::Role::Internet $.client = Module2Rpm::Cro::Client.new();
     has Module2Rpm::Role::Internet $.client = Module2Rpm::Internet::LWP.new(lwp => LWP::Simple.new);
 
     method fetch-metadata( --> Hash) {
         my %all-metadata;
-        my @all-metadata-unfiltered = @!metadata-sources
-            .map({ from-json($!client.get($_))})
-            .flat;
+        my @all-metadata-unfiltered;
+        for @!metadata-sources -> $url {
+            #say "Fetch $url";
+            my $json = $!client.get($url);
+            #say "JSON: ", $json.raku;
+            my $obj = from-json($json);
+            #say "OBJ: ", $obj.raku;
+            @all-metadata-unfiltered.append: $obj.flat;
+            #say "all: ", @all-metadata-unfiltered.raku;
+        }
+
+        # my @all-metadata-unfiltered = @!metadata-sources
+        #     .map({ from-json($!client.get($_))})
+        #     .flat;
 
         # Filter for versions, otherwise not the metadata with the latest version could be in %all-metadata.
         for @all-metadata-unfiltered -> $metadata {

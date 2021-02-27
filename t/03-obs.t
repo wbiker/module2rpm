@@ -1,29 +1,27 @@
 use Test;
 use XML;
 use File::Temp;
+use Test::Mock;
 
-use lib './t/lib';
+use Cro::HTTP::Client;
 
 use Module2Rpm::Upload::OBS;
 use Module2Rpm::Spec;
 use Module2Rpm::Package;
-use Mocks;
 
-my $test-client = Mocks::ClientReplacement.new(
-        get_return_strings => [
-            q:to/END/;
+my $test_client = mocked Module2Rpm::Cro::Client, returning => {
+    get => q:to/END/;
             <directory count="3">
                 <entry name="perl6-IO-Prompt"/>
             </directory>
             END
-       ]
-        );
-my $obs = Module2Rpm::Upload::OBS.new(client => $test-client, project => 'project');
+    };
+
+my $obs = Module2Rpm::Upload::OBS.new(client => $test_client, project => 'project');
 
 dies-ok {$obs.delete-source-file()}, "delete-source-file expect package parameter";
 
 is $obs.package-exists("doesnotexists"), False, "Not existing package returns False";
-is $test-client.get-url(), "https://api.opensuse.org/source/project", "package-exists build correct url";
 is $obs.package-exists("perl6-IO-Prompt"), True, "Existing package returns True";
 
 my $meta = {
@@ -35,22 +33,24 @@ my $meta = {
 my $package = create-test-package(:$meta, path => tempdir().IO);
 $obs.create-package(:$package);
 
-is $test-client.put-stuff<url>, "https://api.opensuse.org/source/project/perl6-Module-Name/_meta", "Url for create package is the expected one";
-
 my $expected-create-package-xml = q:to/END/;
 <package name="perl6-Module-Name" project="project">
     <title>perl6-Module-Name</title>
     <description>summary</description>
 </package>
 END
-is $test-client.put-stuff<content-type>, "application/xml", "Create-package uses proper content-type";
-is $test-client.put-stuff<body>, $expected-create-package-xml, "Create-package uses proper xml";
 
 $obs.delete-package(:$package);
-is $test-client.delete-url(), "https://api.opensuse.org/source/project/perl6-Module-Name", "Delete-package build proper url";
 
-
-
+check-mock($test_client,
+    *.called("get", with => "https://api.opensuse.org/source/project"),
+    *.called("put", with => \(
+       "https://api.opensuse.org/source/project/perl6-Module-Name/_meta",
+       content-type => "application/xml",
+       body => $expected-create-package-xml
+    )),
+    *.called("delete", with => "https://api.opensuse.org/source/project/perl6-Module-Name")
+);
 
 done-testing;
 

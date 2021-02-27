@@ -1,13 +1,13 @@
 use Test;
-
-use lib './t/lib';
+use Test::Mock;
 
 use Module2Rpm::Role::Internet;
 use Module2Rpm::FindLibraryNameForOpenSuse;
-use Mocks;
+use Module2Rpm::Cro::Client;
+use Module2Rpm::Archive::Gzip;
 
-my $client = Mocks::ClientReplacement.new(
-    get_return_strings => [
+my $client = mocked Module2Rpm::Cro::Client, computing => {
+    get => {
         q:to/END/;
         <?xml version="1.0" encoding="UTF-8"?>
         <repomd xmlns="http://linux.duke.edu/metadata/repo" xmlns:rpm="http://linux.duke.edu/metadata/rpm">
@@ -16,13 +16,11 @@ my $client = Mocks::ClientReplacement.new(
             </data>
         </repomd>
         END
+    }
+};
 
-        "bec-primary-content-dummy",
-    ]
-);
-
-my $gzip = Mocks::GzipMock.new(
-        extract-returns =>  [
+my $gzip = mocked Module2Rpm::Archive::Gzip, computing => {
+    Extract => {
             q:to/END/;
             <?xml version="1.0" encoding="UTF-8"?>
             <metadata xmlns="http://linux.duke.edu/metadata/common" xmlns:rpm="http://linux.duke.edu/metadata/rpm" packages="38560">
@@ -36,8 +34,8 @@ my $gzip = Mocks::GzipMock.new(
                 </package>
             </metadata>
             END
-        ]
-);
+        }
+};
 
 my $f = Module2Rpm::FindLibraryNameForOpenSuse.new(:$client, :$gzip);
 

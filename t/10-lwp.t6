@@ -1,32 +1,112 @@
 use Test;
-
-use lib './t/lib';
+use Test::Mock;
 
 use Module2Rpm::Role::Internet;
 use Module2Rpm::Internet::LWP;
+use LWP::Simple;
 
-class LwpReplacement {
-    has Str $.return_string;
-    has Str $.url;
-
-    method get(Str $url) {
-        $!url = $url;
-        return $!return_string;
-    }
-
-    method put(Str $url, :$content-type, :$body) {}
-
-    method delete(Str $url) {}
-
+my $json_return = q:to/END/;
+[
+{
+  "auth": "github:arjancwidlak",
+  "authors": "Arjan Widlak <acw@cpan.org",
+  "build-depends": [
+  ],
+  "depends": [
+    "Config::Parser",
+    "JSON::Fast"
+  ],
+  "description": "JSON parser for Config",
+  "license": [
+    "GPL",
+    "Artistic-2.0"
+  ],
+  "name": "Config::Parser::json",
+  "perl": "6.*",
+  "provides": {
+    "Config::Parser::json": "lib/Config/Parser/json.pm6"
+  },
+  "source-url": "http://www.cpan.org/authors/id/A/AC/ACW/Perl6/Config-Parser-json-1.0.0.tar.gz",
+  "tags": [
+    "config",
+    "configuration"
+  ],
+  "test-depends": [
+    "File::Temp",
+    "Test::META"
+  ],
+  "version": "1.0.0"
 }
+,
+{
+  "authors": [
+    "Takumi Akiyama"
+  ],
+  "build-depends": [
+  ],
+  "depends": [
+  ],
+  "description": "Human JSON (Hjson) deserializer",
+  "license": "Artistic-2.0",
+  "name": "JSON::Hjson",
+  "perl": "6.c",
+  "provides": {
+    "JSON::Hjson": "lib/JSON/Hjson.pm6",
+    "JSON::Hjson::Actions": "lib/JSON/Hjson/Actions.pm6",
+    "JSON::Hjson::Grammar": "lib/JSON/Hjson/Grammar.pm6"
+  },
+  "resources": [
+  ],
+  "source-url": "http://www.cpan.org/authors/id/A/AK/AKIYM/Perl6/JSON-Hjson-0.0.1.tar.gz",
+  "tags": [
+  ],
+  "test-depends": [
+    "JSON::Tiny",
+    "Test::META"
+  ],
+  "version": "0.0.1"
+}
+,
+{
+  "authors": [
+    "Takumi Akiyama"
+  ],
+  "build-depends": [
+  ],
+  "depends": [
+  ],
+  "description": "Human JSON (Hjson) deserializer",
+  "license": "Artistic-2.0",
+  "name": "JSON::Hjson",
+  "perl": "6.c",
+  "provides": {
+    "JSON::Hjson": "lib/JSON/Hjson.pm6",
+    "JSON::Hjson::Actions": "lib/JSON/Hjson/Actions.pm6",
+    "JSON::Hjson::Grammar": "lib/JSON/Hjson/Grammar.pm6"
+  },
+  "resources": [
+  ],
+  "source-url": "http://www.cpan.org/authors/id/A/AK/AKIYM/Perl6/JSON-Hjson-0.0.2.tar.gz",
+  "tags": [
+  ],
+  "test-depends": [
+    "JSON::Fast:ver<0.11+>",
+    "Test::META"
+  ],
+  "version": "0.0.2"
+}
+]
+END
 
-my $lwp_replacement = LwpReplacement.new(return_string => "Get Return");
+my $lwp_mock = mocked LWP::Simple, returning => {
+    get => "Get Return",
+};
 
-my $lwp = Module2Rpm::Internet::LWP.new(lwp => $lwp_replacement);
+my $lwp = Module2Rpm::Internet::LWP.new(lwp => $lwp_mock);
 
 my $ret = $lwp.get("asdasd");
 is $ret, "Get Return", "get returned string";
-is $lwp_replacement.url, "asdasd", "Url is passed";
+check-mock($lwp_mock, *.called('get', times => 1, with => ("asdasd")));
 
 throws-like {$lwp.put("sdsd", content-type => "text/html", body => "body")}, X::NYI;
 throws-like {$lwp.delete("sdsd")}, X::NYI;

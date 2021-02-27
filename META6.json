@@ -39,6 +39,7 @@
   "tags": [
   ],
   "test-depends": [
+      "Test::Mock"
   ],
   "version": "0.0.3"
 }

@@ -1,15 +1,14 @@
 use Test;
 use File::Temp;
-
-use lib './t/lib';
+use Test::Mock;
 
 use Module2Rpm::Helper;
-use Mocks;
 
 {
     my $helper;
-    lives-ok { $helper = Module2Rpm::Helper.new(client => Mocks::ClientReplacement.new) }, "Creation of helper works without exceptions";
-    is $helper.client.WHAT, Mocks::ClientReplacement.WHAT, "client object is the expected one";
+    my $client_mock = mocked Module2Rpm::Cro::Client;
+    lives-ok { $helper = Module2Rpm::Helper.new(client => $client_mock) }, "Creation of helper works without exceptions";
+    is $helper.client.WHAT, $client_mock.WHAT, "client object is the expected one";
     ok $helper.is-meta-url("http://something.meta"), "Meta url recognized";
     nok $helper.is-meta-url("Module::Name"), "Name instead of meta url recognized";
     ok $helper.is-module-name("Module.:Name"), "Module name found";
@@ -17,9 +16,8 @@ use Mocks;
 }
 
 {
-    my @download-return-strings;
-    @download-return-strings.push(q:to/META/);
-    [
+    my $download_return_strings = (
+    '[
         {
           "auth": "github:arjancwidlak",
           "authors": "Arjan Widlak <acw@cpan.org",
@@ -51,10 +49,8 @@ use Mocks;
           ],
           "version": "1.0.0"
         }
-    ]
-    META
-    @download-return-strings.push(q:to/METAEND/);
-    [
+    ]',
+    '[
         {
               "authors": [
                 "Takumi Akiyama"
@@ -82,15 +78,17 @@ use Mocks;
 
               ],
               "test-depends": [
-                "JSON::Tiny",
-                "Test::META"
-              ],
-              "version": "0.0.1"
+              "JSON::Tiny",
+              "Test::META"
+            ],
+            "version": "0.0.1"
         }
-    ]
-    METAEND
+    ]').iterator;
 
-    my $helper = Module2Rpm::Helper.new(client => Mocks::ClientReplacement.new(get_return_strings => @download-return-strings));
+    my $client_mock = mocked Module2Rpm::Cro::Client, computing => {
+        get => { $download_return_strings.pull-one },
+    };
+    my $helper = Module2Rpm::Helper.new(client => $client_mock);
     my %all-metadata;
     lives-ok { %all-metadata = $helper.fetch-metadata() }, "Fetch-metadata does not die";
 
@@ -127,11 +125,11 @@ use Mocks;
 
     is-deeply %all-metadata, %expected-metadata, "Recieved metadata are the expected ones";
 }
+
 {
-    my @return-for-download;
     # To test create-package(), the return values for client.get must be prepared. First the metadata
     # from the JSONs URL are expected.
-    @return-for-download.push(
+    my $return_strings = (
         '[
             {
                 "authors": [
@@ -155,11 +153,9 @@ use Mocks;
                 ],
                 "version": "0.0.2"
             }
-            ]'
-    );
+    ]',
     # Then the json string from a source url:
-    @return-for-download.push(
-        '[
+    '[
             {
                 "depends" : [
                     "LibXML",
@@ -192,11 +188,9 @@ use Mocks;
                 ],
                 "version" : "0.0.5"
             }
-            ]'
-    );
+            ]',
     # This is the return string from the metadata download.
     # Must not be an array.
-    @return-for-download.push(
         '{
             "depends" : [
               "LibXML",
@@ -229,9 +223,13 @@ use Mocks;
             ],
             "version" : "0.0.5"
         }'
-   );
+   ).iterator;
 
-    my $helper = Module2Rpm::Helper.new(client => Mocks::ClientReplacement.new(get_return_strings => @return-for-download));
+    my $client_mock = mocked Module2Rpm::Cro::Client, computing => {
+        get => { $return_strings.pull-one },
+    };
+
+    my $helper = Module2Rpm::Helper.new(client => $client_mock);
     throws-like { $helper.create-packages(path => tempdir().IO, file => "filedoesnotexists".IO) }, X::AdHoc, payload => /'does not exists'/;
 
     my ($tempfile) = tempfile();
@@ -247,25 +245,24 @@ use Mocks;
     is @packages[1].module-name(), "perl6-CSS", "create-packages has second module";
 }
 {
-    my @download-return-strings;
-    @download-return-strings.push(q:to/META/);
-    [
+    my $return_strings = (
+    '[
         {
           "name": "Test::Module::For::Version",
           "version": "1.0.0"
         }
-    ]
-    META
-    @download-return-strings.push(q:to/METAEND/);
-    [
+    ]',
+    '[
         {
               "name": "Test::Module::For::Version",
               "version": "0.0.1"
         }
-    ]
-    METAEND
+    ]').iterator;
+    my $client_mock = mocked Module2Rpm::Cro::Client, computing => {
+        get => { $return_strings.pull-one },
+    };
 
-    my $helper = Module2Rpm::Helper.new(client => Mocks::ClientReplacement.new(get_return_strings => @download-return-strings));
+    my $helper = Module2Rpm::Helper.new(client => $client_mock);
     my %all-metadata;
     lives-ok { %all-metadata = $helper.fetch-metadata() }, "Fetch-metadata does not die";
 
