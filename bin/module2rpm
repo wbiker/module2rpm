@@ -3,6 +3,7 @@ use File::Temp;
 use Config::Clever;
 use Cro::HTTP::Client;
 use JSON::Fast;
+use LogP6 :configure;
 
 use Module2Rpm::Download::Git;
 use Module2Rpm::Archive::Tar;
@@ -13,6 +14,8 @@ use Module2Rpm::Upload::OBS;
 use Module2Rpm::Cro::Client;
 
 our $*DEBUG = False;
+
+my $log = get-logger('module2rpm');
 
 my $helper = Module2Rpm::Helper.new;
 
@@ -27,7 +30,7 @@ $config-dir.mkdir unless $config-dir.e;
 
 my $config-file = $config-dir.add('default.json');
 unless $config-file.e {
-    say "Config does not exists. Create $config-file";
+    $log.info("Config does not exists. Create $config-file");
     my %new-config;
     %new-config<obs-user> = prompt "Enter OBS user: ";
     %new-config<obs-password> = prompt "Enter OBS password: ";
@@ -36,7 +39,7 @@ unless $config-file.e {
     $config-file.spurt(to-json(%new-config));
 }
 
-say "Load config: $config-dir";
+$log.info("Load config: $config-dir");
 my %config = Config::Clever.load(config-dir => $config-dir);
 # Config for Open Build Service.
 # User using the OBS API: https://api.opensuse.org
@@ -57,29 +60,33 @@ multi MAIN(:h(:$help)) {
 }
 
 #| Downloads, creates spec files and uploads them to OBS for all modules given in a file.
-multi MAIN(:$file!) {
-    say "Parse download file: $file";
+multi MAIN(:$file!, :$verbose?) {
+    filter(:name<f>, :level($debug), :update) if $verbose;
+
+    $log.info("Parse download file: $file");
     my @packages = $helper.create-packages(path => $destination-path, file => $file.IO);
 
     for @packages -> $package {
-        say "{$package.spec.get-name()}: Download source...";
+        $log.info("{$package.spec.get-name()}: Download source...");
         try {
             $package.Download();
 
-            CATCH { default { say $_; next; }}
+            CATCH { default { $log.info($_); next; }}
         }
-        say "{$package.spec.get-name()}: Write spec file...";
+        $log.info("{$package.spec.get-name()}: Write spec file...");
         $package.write-spec-file();
 
         my $obs = Module2Rpm::Upload::OBS.new(client => $client, project => $obs-project);
-        say "Upload {$package.spec.get-name()} to OBS";
+        $log.info("Upload {$package.spec.get-name()} to OBS");
         $obs.upload-files(package => $package);
     }
 }
 
 #| Downloads, creates spec file and uploads to OBS a given module.
-multi MAIN(:$module!) {
-    say "Fetch module metadata...";
+multi MAIN(:$module!, :$verbose) {
+    filter(:name<f>, :level($debug), :update) if $verbose;
+
+    $log.info("Fetch module metadata...");
     my %all-metadata = $helper.fetch-metadata();
 
     my $module-metadata = %all-metadata{$module};
@@ -88,17 +95,17 @@ multi MAIN(:$module!) {
     my $spec = Module2Rpm::Spec.new(metadata => $module-metadata);
     my $package = Module2Rpm::Package.new(spec => $spec, path => $destination-path);
 
-    say "Download module source...";
+    $log.info("Download module source...");
     $package.Download();
 
-    say "Write spec file...";
+    $log.info("Write spec file...");
     $package.write-spec-file();
 
     my $obs = Module2Rpm::Upload::OBS.new(client => $client, project => $obs-project);
-    say "Upload module to OBS";
+    $log.info("Upload module to OBS");
     $obs.upload-files(package => $package);
 
-    say "Done";
+    $log.info("Done");
 }
 
 sub help() {

@@ -10,7 +10,8 @@
     "JSON::Fast",
     "Cro::HTTP",
     "XML",
-    "Config::Clever"
+    "Config::Clever",
+    "LogP6"
   ],
   "description": "Create RPM's from raku modules.",
   "license": "Apache License 2.0",

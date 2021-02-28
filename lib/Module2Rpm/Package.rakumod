@@ -1,4 +1,5 @@
 use File::Temp;
+use LogP6;
 
 use Module2Rpm::Spec;
 use Module2Rpm::Archive::Tar;
@@ -17,6 +18,9 @@ A OBS package contains a tar archive with the source code and a spec file with t
 =end pod
 
 class Module2Rpm::Package {
+    #| Logging
+    has $!log = get-logger($?CLASS.^name);
+
     #| Class that handles spec file parameter.
     has Module2Rpm::Spec $.spec is required;
 
@@ -87,10 +91,13 @@ class Module2Rpm::Package {
     #| Then the root folder is compressed with tar again and the archive file is copied to the destination.
     method Download() {
         my $download-dir = tempdir().IO;
+        $!log.debug("Temporary download folder: $download-dir");
         my $downloaded-item;
 
         if self.is-git-repository() {
+            $!log.debug("Git repository found");
             $downloaded-item = $download-dir.add($!module-name-with-version);
+            $!log.debug("Download $!source-url to $downloaded-item");
             $!git.Download($!source-url, $downloaded-item);
             my $git-repo-tar-archive-path = $!tar.Compress($downloaded-item, $!tar-name);
             $git-repo-tar-archive-path.copy($!tar-archive-path);
@@ -98,9 +105,11 @@ class Module2Rpm::Package {
         }
 
         $downloaded-item = $download-dir.add($!module-name ~ ".tmp");
+        $!log.debug("Download tar.gz file to $downloaded-item");
         # Download source as .tar.gz archive file in an temporary folder and extract it.
         my $file-content;
         try {
+            $!log.debug("Fetch $!source-url");
             $file-content = $!client.get($!source-url);
 
             CATCH { default { die "Could not download module source: {$!source-url} - {$_.message()}" }; }

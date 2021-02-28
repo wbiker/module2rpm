@@ -1,0 +1,18 @@
+{
+    "default-pattern": "[%date{$hh:$mm:$ss}][%trait][%level] %msg",
+  "writers": [{
+    "type": "std",
+    "name": "w",
+    "handle": { "type": "std", "path": "err" }
+  }],
+  "filters": [{
+    "type": "std",
+    "name": "f",
+    "level": "info"
+  }],
+  "cliches": [{
+    "name": "cl",
+    "matcher": "/.*/",
+    "grooves": [ "w", "f" ] 
+  }]
+}

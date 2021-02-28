@@ -1,3 +1,5 @@
+use LogP6;
+
 use Module2Rpm::Role::FindLibraryName;
 use Module2Rpm::FindLibraryNameWithFindProvides;
 use Module2Rpm::FindLibraryNameForOpenSuse;
@@ -22,6 +24,7 @@ Returns the spec file content as Str.
 =end pod
 
 class Module2Rpm::Spec:ver<0.0.3> {
+    has $!log = get-logger($?CLASS.^name);
     has $.metadata is required;
     has $.requires = 'perl6 >= 2016.12';
     has $.build-requires = "rakudo >= 2017.04.2";
@@ -33,6 +36,7 @@ class Module2Rpm::Spec:ver<0.0.3> {
 
     #| Returns the module name changed to perl6-<module name with '::' replaced by '-'>.
     method get-name( --> Str) {
+        $!log.debug("Metadata: " ~ $!metadata.raku);
         die "Spec: Metadata does not provide module name!\n" ~ $!metadata.raku unless $!metadata<name>;
 
         return "perl6-{ $!metadata<name>.subst: /'::'/, '-', :g }"
@@ -40,6 +44,7 @@ class Module2Rpm::Spec:ver<0.0.3> {
 
     #| Returns the version found in the metadata. For '*' versions 0.1 is returned.
     method get-version() {
+        $!log.debug("Metadata: " ~ $!metadata.raku);
         die "Spec: No version found in metadata" unless $!metadata<version>;
 
         return $!metadata<version> eq '*' ?? '0.1' !! $!metadata<version>;
@@ -48,6 +53,7 @@ class Module2Rpm::Spec:ver<0.0.3> {
     #| Returns a list of the provided files with the pattern:
     #| Provides:       perl6(<name of the provided file>)
     method provides() {
+        $!log.debug("Metadata: " ~ $!metadata.raku);
         die "Spec: Metadata does not provide a module name" unless $!metadata<name>;
 
         return ($!metadata<name>, |$!metadata<provides>.keys).unique.sort.map({"Provides:       perl6($_)"}).join("\n");
@@ -102,21 +108,29 @@ class Module2Rpm::Spec:ver<0.0.3> {
     }
 
     method map-dependency($requires is copy)  {
-        say "SPEC.map-dependency: '$requires'" if $*DEBUG;
+        $!log.debug("SPEC.map-dependency: '$requires'");
         # Ignoring certain modules, otherwise OBS would complain about missing requirements.
         return if self.is-ignored($requires);
         my %adverbs = flat ($requires ~~ s:g/':' $<key> = (\w+) '<' $<value> = (<-[>]>+) '>'//)
                 .map({$_<key>.Str, $_<value>.Str});
         given %adverbs<from> {
             when 'native' {
-                say "Spec.map-dependency: Look for native library name: $requires" if $*DEBUG;
+                $!log.debug("Spec.map-dependency: Look for native library name: $requires");
                 return $!find-rpm.find-rpm(:%adverbs, requires => $requires.IO);
             }
-            when 'bin'    { return '%{_bindir}/' ~ $requires }
-            default       { return "perl6($requires)" }
+            when 'bin'    {
+                my $req = '%{_bindir}/' ~ $requires;
+                $!log.debug("Bin requires: $req");
+                return $req;
+            }
+            default       {
+                my $req = "perl6($requires)";
+                $!log.debug("Default requires: $req");
+                return $req;
+            }
         }
 
-        say "Spec.map-dependency: Library name '$requires'" if $*DEBUG;
+        $!log.debug("Spec.map-dependency: Library name '$requires'");
     }
 
     method is-ignored($requires) {
