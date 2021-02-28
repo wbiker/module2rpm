@@ -1,5 +1,5 @@
 {
-    "default-pattern": "[%date{$hh:$mm:$ss}][%trait][%level] %msg",
+    "default-pattern": "[%date{$hh:$mm:$ss}][%trait][%frameline][%level] %msg",
   "writers": [{
     "type": "std",
     "name": "w",
