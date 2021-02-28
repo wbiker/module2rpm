@@ -1,4 +1,5 @@
 use XML;
+use LogP6;
 
 use Module2Rpm::Role::Internet;
 use Module2Rpm::Package;
@@ -23,6 +24,7 @@ Uploads the source tar archive file and the spec file of a package.
 =end pod
 
 class Module2Rpm::Upload::OBS {
+    has $!log = get-logger($?CLASS.^name);
     has Module2Rpm::Role::Internet $.client is required;
     has $.project is required;
     has Set $.packages;
@@ -49,18 +51,20 @@ class Module2Rpm::Upload::OBS {
         </package>
         END
         my $url = $!api-url ~ "/source/" ~ $!project  ~ "/" ~ $package.module-name ~ "/_meta";
+        $!log.debug("Create package '$url'");
         $!client.put($url, content-type => "application/xml", body => $xml);
     }
 
     method delete-package(Module2Rpm::Package :$package!) {
         my $url = $!api-url ~ "/source/" ~ $!project ~ "/" ~ $package.module-name;
+        $!log.debug("Delete package $url");
         $!client.delete($url);
     }
 
     method delete-all-packages() {
         self.get-packages();
         for $!packages.keys -> $package {
-            say "Delete $package";
+            $!log.info("Delete $package");
             my $url = $!api-url ~ "/source/" ~ $!project ~ "/" ~ $package;
             $!client.delete($url);
         }
@@ -68,7 +72,7 @@ class Module2Rpm::Upload::OBS {
 
     method upload-files(Module2Rpm::Package :$package!) {
         if not self.package-exists($package.module-name) {
-            say "Create package {$package.module-name}";
+            $!log.debug("Create package {$package.module-name}");
             self.create-package(:$package);
         }
 
@@ -78,9 +82,9 @@ class Module2Rpm::Upload::OBS {
         my $tar-archive-binary-content = $package.tar-archive-path.slurp(:bin, :close);
         my $spec-file-content = $package.spec-file-path.slurp(:close);
 
-        say "{$package.module-name}: Upload tar archive file";
+        $!log.info("{$package.module-name}: Upload tar archive file");
         $!client.put($url-source-archive, content-type => "application/octet-stream", body => $tar-archive-binary-content);
-        say "{$package.module-name}: Upload spec file";
+        $!log.info("{$package.module-name}: Upload spec file");
         $!client.put($url-spec-file, body => $spec-file-content);
     }
 
@@ -100,9 +104,15 @@ class Module2Rpm::Upload::OBS {
     }
 
     method get-packages() {
-        return $!packages if $!packages.defined;
+        if $!packages.defined {
+            $!log.debug("packages already cached. Skip download");
+            return $!packages;
+        }
 
-        my $xml = self.get($!api-url ~ "/source/" ~ $!project);
+        my $url = $!api-url ~ "/source/" ~ $!project;
+        $!log.debug("Fetch packages from '$url'");
+        my $xml = self.get($url);
+
         my @packages;
         for $xml.root -> $note {
             for $note.elements -> $element {
