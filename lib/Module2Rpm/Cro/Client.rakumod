@@ -73,7 +73,7 @@ class Module2Rpm::Cro::Client does Module2Rpm::Role::Internet {
             await $!client.put($url, :$content-type, :$body);
 
             CATCH {
-                default { "PUT request failed with { $_ } for '$url'"; }
+                default { $!log.error("PUT request failed with { $_ } for '$url'"); }
             }
         }
     }
