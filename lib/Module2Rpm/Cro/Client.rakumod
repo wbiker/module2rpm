@@ -68,12 +68,12 @@ class Module2Rpm::Cro::Client does Module2Rpm::Role::Internet {
 
     method put(Str $url, :$body, :$content-type = "text/html") {
         try {
-            $!log.debug("PUT '$url', content-type: $content-type, body: $body");
+            $!log.debug("PUT '$url', content-type: $content-type");
 
             await $!client.put($url, :$content-type, :$body);
 
             CATCH {
-                default { "PUT request failed with { $_ } for '$url'"; }
+                default { $!log.error("PUT request failed with { $_ } for '$url'"); }
             }
         }
     }
