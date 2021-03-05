@@ -51,6 +51,9 @@ class Module2Rpm::Package {
     #| The readme file of the package.
     has IO::Path $.readme-file;
 
+    #| The license file of the package.
+    has IO::Path $.license-file;
+
     #| Class used to download via Cro::HTTP::Client.
     has Module2Rpm::Role::Internet $.client;
 
@@ -127,6 +130,9 @@ class Module2Rpm::Package {
         # Store readme file name for adding it to the spec file.
         $!readme-file = self.get-readme($module-name-path);
 
+        # Store license file name for adding it to the spec file.
+        $!license-file = self.get-license-file($module-name-path);
+
         # Compress sources with renamed folder as perl6-<module name>-<version>.tar.xz.
         my $tmp-tar-archive-path = $!tar.Compress($module-name-path, $!tar-name);
         $tmp-tar-archive-path.copy($!tar-archive-path);
@@ -135,7 +141,10 @@ class Module2Rpm::Package {
 
     #| Writes the spec file in the given path.
     method write-spec-file() {
-        my $spec-file-content = $!spec.get-spec-file(readme-file => $!readme-file.IO);
+        my $spec-file-content = $!spec.get-spec-file(
+            readme-file  => $!readme-file.IO,
+            license-file => $!license-file.IO
+        );
         $!spec-file-path.spurt($spec-file-content);
     }
 
@@ -146,6 +155,12 @@ class Module2Rpm::Package {
     method get-readme(IO::Path $path) {
        for $path.dir -> $item {
            return $item if $item.basename ~~ /'README'/;
+       }
+    }
+
+    method get-license-file(IO::Path $path) {
+       for $path.dir -> $item {
+           return $item if $item.basename ~~ /'LICENSE'/;
        }
     }
 }
