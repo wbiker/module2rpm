@@ -54,19 +54,11 @@ class Module2Rpm::Helper {
         my %all-metadata;
         my @all-metadata-unfiltered;
         for @!metadata-sources -> $url {
-            $!log.info("Fetch $url");
-            #say "Fetch $url";
+            $!log.debug("Fetch $url");
             my $json = $!client.get($url);
-            #say "JSON: ", $json.raku;
             my $obj = from-json($json);
-            #say "OBJ: ", $obj.raku;
             @all-metadata-unfiltered.append: $obj.flat;
-            #say "all: ", @all-metadata-unfiltered.raku;
         }
-
-        # my @all-metadata-unfiltered = @!metadata-sources
-        #     .map({ from-json($!client.get($_))})
-        #     .flat;
 
         # Filter for versions, otherwise not the metadata with the latest version could be in %all-metadata.
         for @all-metadata-unfiltered -> $metadata {
