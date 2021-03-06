@@ -3,7 +3,7 @@ use File::Temp;
 use Config::Clever;
 use Cro::HTTP::Client;
 use JSON::Fast;
-use LogP6 :configure;
+use LogP6;
 
 use Module2Rpm::Download::Git;
 use Module2Rpm::Archive::Tar;
@@ -12,8 +12,6 @@ use Module2Rpm::Package;
 use Module2Rpm::Helper;
 use Module2Rpm::Upload::OBS;
 use Module2Rpm::Cro::Client;
-
-our $*DEBUG = False;
 
 my $log = get-logger('module2rpm');
 
@@ -60,8 +58,8 @@ multi MAIN(:h(:$help)) {
 }
 
 #| Downloads, creates spec files and uploads them to OBS for all modules given in a file.
-multi MAIN(:$file!, :$verbose?) {
-    filter(:name<f>, :level($debug), :update) if $verbose;
+multi MAIN(:$file!, :$debug?) {
+    LogP6::filter(:name<f>, :level(LogP6::<$debug>), :update) if $debug;
 
     $log.info("Parse download file: $file");
     my @packages = $helper.create-packages(path => $destination-path, file => $file.IO);
@@ -83,8 +81,8 @@ multi MAIN(:$file!, :$verbose?) {
 }
 
 #| Downloads, creates spec file and uploads to OBS a given module.
-multi MAIN(:$module!, :$verbose) {
-    filter(:name<f>, :level($debug), :update) if $verbose;
+multi MAIN(:$module!, :$debug) {
+    LogP6::filter(:name<f>, :level(LogP6::<$debug>), :update) if $debug;
 
     $log.info("Fetch module metadata...");
     my %all-metadata = $helper.fetch-metadata();
@@ -110,7 +108,7 @@ multi MAIN(:$module!, :$verbose) {
 
 sub help() {
     say q:to/HELP/;
-    module2rpm [--module=module::name | --file=filePath]
+    module2rpm --module=module::name | --file=filePath [--debug]
 
     This program downloads the source of a Raku module, writes the spec file
     with the metadata and uploads both files to OBS.
@@ -124,5 +122,6 @@ sub help() {
                                 metadata urls. Download the sources and
                                 uploaded them together with the spec files to
                                 OBS.
+        --debug                 Sets DEBUG logging level
     HELP
 }
