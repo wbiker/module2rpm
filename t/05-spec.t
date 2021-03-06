@@ -101,6 +101,27 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
 }
 
 {
+    my $spec = Module2Rpm::Spec.new(metadata => {
+        depends => {
+            runtime => {
+                "requires" => [
+                    "Distribution::Builder::MakeFromJSON:ver<0.6+>",
+                    {
+                        "from" => "bin",
+                        "name"=> "perl"
+                    }
+                ]
+            }
+        }
+    });
+
+    is $spec.requires(), chomp(q:to/SPEC/), "Requires does not return dependency as Hash";
+        Requires:       perl6 >= 2016.12
+        Requires:       perl6(Distribution::Builder::MakeFromJSON)
+        SPEC
+}
+
+{
     my $spec = Module2Rpm::Spec.new(metadata => {});
 
     is $spec.build-requires(), chomp(q:to/META/), "Build-requires returns one dependency";

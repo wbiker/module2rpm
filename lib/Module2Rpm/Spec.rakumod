@@ -101,9 +101,11 @@ class Module2Rpm::Spec:ver<0.0.3> {
             @requires.append: flat $!metadata<depends><build><requires>.map({ self.map-dependency($_) })
         }
 
-        @requires.append: flat $!metadata<build-depends>.map({ self.map-dependency($_) })
-                if $!metadata<build-depends>;
-        @requires.push: 'Distribution::Builder' ~ $!metadata<builder> if $!metadata<builder>;
+        @requires.append: flat $!metadata<build-depends>.map({ self.map-dependency($_) }) if $!metadata<build-depends>;
+
+        # Looks like the modules in the "builder" key can be also find in the depends<build><requires>
+        # hash of the metadata. At least for Inline::Perl5. Disable it for now until I find a solution for that.
+        #@requires.push: 'Distribution::Builder' ~ $!metadata<builder> if $!metadata<builder>;
         return @requires.grep( {$_} ).map({"BuildRequires:  $_"}).join("\n");
     }
 
@@ -111,8 +113,16 @@ class Module2Rpm::Spec:ver<0.0.3> {
         $!log.debug("SPEC.map-dependency: '$requires'");
         # Ignoring certain modules, otherwise OBS would complain about missing requirements.
         return if self.is-ignored($requires);
-        my %adverbs = flat ($requires ~~ s:g/':' $<key> = (\w+) '<' $<value> = (<-[>]>+) '>'//)
-                .map({$_<key>.Str, $_<value>.Str});
+
+        if $requires ~~ Hash {
+            # If dependency comes as Hash I do not know what I should do whith that.
+            return "";
+        }
+
+        my %adverbs = flat ($requires ~~ s:g/':' $<key> = (\w+) '<' $<value> = (<-[>]>+) '>'//).map({$_<key>.Str => $_<value>.Str});
+
+        $!log.debug("Found adverbs for module: " ~ %adverbs.raku);
+
         given %adverbs<from> {
             when 'native' {
                 $!log.debug("Spec.map-dependency: Look for native library name: $requires");
