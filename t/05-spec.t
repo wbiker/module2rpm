@@ -178,7 +178,7 @@ my $meta = {
 my $spec = Module2Rpm::Spec.new(metadata => $meta);
 my $spec-file-content = $spec.get-spec-file();
 
-like $spec-file-content, /'Source:         perl6-IO-Prompt-0.0.2.tar.xz'/, "Source found in spec file";
+like $spec-file-content, /'Source0:         perl6-IO-Prompt-0.0.2.tar.xz'/, "Source0 found in spec file";
 like $spec-file-content, /'Name:           perl6-IO-Prompt'/, "Name found in spec file";
 like $spec-file-content, /'Version:        0.0.2'/, "Version found in spec file";
 like $spec-file-content, /'Release:        1.1'/, "Release found in spec file";
