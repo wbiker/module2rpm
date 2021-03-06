@@ -36,7 +36,6 @@ class Module2Rpm::Spec:ver<0.0.3> {
 
     #| Returns the module name changed to perl6-<module name with '::' replaced by '-'>.
     method get-name( --> Str) {
-        $!log.debug("Metadata: " ~ $!metadata.raku);
         die "Spec: Metadata does not provide module name!\n" ~ $!metadata.raku unless $!metadata<name>;
 
         return "perl6-{ $!metadata<name>.subst: /'::'/, '-', :g }"
@@ -44,7 +43,6 @@ class Module2Rpm::Spec:ver<0.0.3> {
 
     #| Returns the version found in the metadata. For '*' versions 0.1 is returned.
     method get-version() {
-        $!log.debug("Metadata: " ~ $!metadata.raku);
         die "Spec: No version found in metadata" unless $!metadata<version>;
 
         return $!metadata<version> eq '*' ?? '0.1' !! $!metadata<version>;
@@ -53,7 +51,6 @@ class Module2Rpm::Spec:ver<0.0.3> {
     #| Returns a list of the provided files with the pattern:
     #| Provides:       perl6(<name of the provided file>)
     method provides() {
-        $!log.debug("Metadata: " ~ $!metadata.raku);
         die "Spec: Metadata does not provide a module name" unless $!metadata<name>;
 
         return ($!metadata<name>, |$!metadata<provides>.keys).unique.sort.map({"Provides:       perl6($_)"}).join("\n");
@@ -158,6 +155,8 @@ class Module2Rpm::Spec:ver<0.0.3> {
 
     #| Returns the spec file as String.
     method get-spec-file(:$readme-file, :$license-file --> Str) {
+        $!log.debug("Metadata: " ~ $!metadata.raku);
+
         my $package-name = self.get-name();
         my $version = self.get-version();
         my $license = $!metadata<license> // 'Artistic-2.0';
@@ -194,7 +193,7 @@ class Module2Rpm::Spec:ver<0.0.3> {
         Summary:        $summary
         Url:            $source-url
         Group:          Development/Languages/Other
-        Source:         $tar-name
+        Source0:         $tar-name
         BuildRequires:  fdupes
         $build-requires
         $requires
