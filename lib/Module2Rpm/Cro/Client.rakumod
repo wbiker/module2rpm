@@ -61,7 +61,7 @@ class Module2Rpm::Cro::Client does Module2Rpm::Role::Internet {
     method get(Str $url) {
         $!log.debug("GET '$url'");
         my $response = await $!client.get($url);
-        $!log.debug("Response status: " ~ $response.status);
+        $!log.debug($response.get-response-phrase());
 
         return await $response.body;
     }

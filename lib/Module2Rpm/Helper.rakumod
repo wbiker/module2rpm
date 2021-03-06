@@ -104,7 +104,7 @@ class Module2Rpm::Helper {
             if self.is-module-name($line) {
                 my $module-metadata = %all-metadata{$line.chomp};
                 unless $module-metadata {
-                    warn "Did not find metadata for module '$line'";
+                    $!log.warn("Did not find metadata for module '$line'");
                     next;
                 }
 
