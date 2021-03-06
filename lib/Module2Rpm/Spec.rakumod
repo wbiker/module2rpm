@@ -157,7 +157,7 @@ class Module2Rpm::Spec:ver<0.0.3> {
     }
 
     #| Returns the spec file as String.
-    method get-spec-file(:$readme-file --> Str) {
+    method get-spec-file(:$readme-file, :$license-file --> Str) {
         my $package-name = self.get-name();
         my $version = self.get-version();
         my $license = $!metadata<license> // 'Artistic-2.0';
@@ -167,7 +167,7 @@ class Module2Rpm::Spec:ver<0.0.3> {
         my $requires = self.requires();
         my $build-requires = self.build-requires();
         my $provides = self.provides();
-        my $LICENSE = $!metadata<license-file> ?? "\n%license {$!metadata<license-file>}" !! '';
+        my $LICENSE = $license-file ?? "\n%license {$license-file.basename}" !! '';
         my $RPM_BUILD_ROOT = '$RPM_BUILD_ROOT'; # Workaround for https://rt.perl.org/Ticket/Display.html?id=127226
         my $readme = $readme-file ?? $readme-file.basename !! "";
 
@@ -216,7 +216,7 @@ class Module2Rpm::Spec:ver<0.0.3> {
         find %{buildroot}/%{_datadir}/perl6/vendor/bin/ -type f -exec sed -i -e '1s:!/usr/bin/env :!/usr/bin/:' '{}' \;
         %files
         %defattr(-,root,root)
-        %doc $readme $LICENSE
+        %doc $readme$LICENSE
         %{_datadir}/perl6/vendor
         %changelog
         TEMPLATE
