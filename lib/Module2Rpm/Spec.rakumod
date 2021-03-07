@@ -193,7 +193,7 @@ class Module2Rpm::Spec:ver<0.0.3> {
         Summary:        $summary
         Url:            $source-url
         Group:          Development/Languages/Other
-        Source0:         $tar-name
+        Source0:        $tar-name
         BuildRequires:  fdupes
         $build-requires
         $requires
