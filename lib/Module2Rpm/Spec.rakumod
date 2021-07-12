@@ -105,8 +105,29 @@ class Module2Rpm::Spec:ver<0.0.3> {
         say "SPEC.map-dependency: '$requires'" if $*DEBUG;
         # Ignoring certain modules, otherwise OBS would complain about missing requirements.
         return if self.is-ignored($requires);
-        my %adverbs = flat ($requires ~~ s:g/':' $<key> = (\w+) '<' $<value> = (<-[>]>+) '>'//)
-                .map({$_<key>.Str, $_<value>.Str});
+        my %adverbs;
+
+        # This makes problems when trying to build Inline::Perl5
+        # "depends": {
+        #     "build": {
+        #       "requires": [
+        #         "Distribution::Builder::MakeFromJSON:ver<0.6+>",
+        #         {
+        #           "from": "bin",
+        #           "name": "perl"
+        #         }
+        #       ]
+        #     },
+
+        given $requires {
+            when Str { %adverbs = flat ($requires ~~ s:g/':' $<key> = (\w+) '<' $<value> = (<-[>]>+) '>'//)
+                .map({$_<key>.Str, $_<value>.Str}); }
+                say "SPEC.map-dependency: Transformed Requires into Hash" if $*DEBUG;
+            when Hash {
+                say "SPEC.map-dependency: Requires is allready a Hash: {$requires.raku}'" if $*DEBUG;
+                %adverbs = $requires.Hash;
+            }
+        }
         given %adverbs<from> {
             when 'native' {
                 say "Spec.map-dependency: Look for native library name: $requires" if $*DEBUG;
