@@ -1,4 +1,5 @@
 use File::Temp;
+use LogP6;
 
 use Module2Rpm::Spec;
 use Module2Rpm::Archive::Tar;
@@ -17,6 +18,9 @@ A OBS package contains a tar archive with the source code and a spec file with t
 =end pod
 
 class Module2Rpm::Package {
+    #| Logging
+    has $!log = get-logger($?CLASS.^name);
+
     #| Class that handles spec file parameter.
     has Module2Rpm::Spec $.spec is required;
 
@@ -46,6 +50,9 @@ class Module2Rpm::Package {
 
     #| The readme file of the package.
     has IO::Path $.readme-file;
+
+    #| The license file of the package.
+    has IO::Path $.license-file;
 
     #| Class used to download via Cro::HTTP::Client.
     has Module2Rpm::Role::Internet $.client;
@@ -87,10 +94,13 @@ class Module2Rpm::Package {
     #| Then the root folder is compressed with tar again and the archive file is copied to the destination.
     method Download() {
         my $download-dir = tempdir().IO;
+        $!log.debug("Temporary download folder: $download-dir");
         my $downloaded-item;
 
         if self.is-git-repository() {
+            $!log.debug("Git repository found");
             $downloaded-item = $download-dir.add($!module-name-with-version);
+            $!log.debug("Download $!source-url to $downloaded-item");
             $!git.Download($!source-url, $downloaded-item);
             my $git-repo-tar-archive-path = $!tar.Compress($downloaded-item, $!tar-name);
             $git-repo-tar-archive-path.copy($!tar-archive-path);
@@ -98,9 +108,11 @@ class Module2Rpm::Package {
         }
 
         $downloaded-item = $download-dir.add($!module-name ~ ".tmp");
+        $!log.debug("Download tar.gz file to $downloaded-item");
         # Download source as .tar.gz archive file in an temporary folder and extract it.
         my $file-content;
         try {
+            $!log.debug("Fetch $!source-url");
             $file-content = $!client.get($!source-url);
 
             CATCH { default { die "Could not download module source: {$!source-url} - {$_.message()}" }; }
@@ -118,6 +130,9 @@ class Module2Rpm::Package {
         # Store readme file name for adding it to the spec file.
         $!readme-file = self.get-readme($module-name-path);
 
+        # Store license file name for adding it to the spec file.
+        $!license-file = self.get-license-file($module-name-path);
+
         # Compress sources with renamed folder as perl6-<module name>-<version>.tar.xz.
         my $tmp-tar-archive-path = $!tar.Compress($module-name-path, $!tar-name);
         $tmp-tar-archive-path.copy($!tar-archive-path);
@@ -126,7 +141,10 @@ class Module2Rpm::Package {
 
     #| Writes the spec file in the given path.
     method write-spec-file() {
-        my $spec-file-content = $!spec.get-spec-file(readme-file => $!readme-file.IO);
+        my $spec-file-content = $!spec.get-spec-file(
+            readme-file  => $!readme-file.IO,
+            license-file => $!license-file.IO
+        );
         $!spec-file-path.spurt($spec-file-content);
     }
 
@@ -137,6 +155,12 @@ class Module2Rpm::Package {
     method get-readme(IO::Path $path) {
        for $path.dir -> $item {
            return $item if $item.basename ~~ /'README'/;
+       }
+    }
+
+    method get-license-file(IO::Path $path) {
+       for $path.dir -> $item {
+           return $item if $item.basename ~~ /'LICENSE'/;
        }
     }
 }

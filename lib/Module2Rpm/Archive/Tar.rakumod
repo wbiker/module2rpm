@@ -1,3 +1,5 @@
+use LogP6;
+
 use Module2Rpm::Role::Archive;
 
 =begin pod
@@ -47,13 +49,17 @@ Returns all files in an archive.
 =end pod
 
 class Module2Rpm::Archive::Tar does Module2Rpm::Role::Archive {
+    has $!log = get-logger($?CLASS.^name);
+
     method Extract(IO::Path $path) {
+        $!log.debug("Extract $path");
         my $proc = run 'tar', '-xf', $path.absolute, :cwd($path.parent);
 
         die "Tar extract failed for '{$path.absolute}'" if $proc.exitcode;
     }
 
     method Compress(IO::Path $path, Str $name --> IO::Path) {
+        $!log.debug("Compress $path with name $name");
         my $proc = run <tar --exclude-vcs -cJf>, $name, "-C", $path.parent.absolute, $path.basename, :cwd($path.parent);
 
         die "Tar compress failed for '$path'" if $proc.exitcode;
@@ -62,6 +68,7 @@ class Module2Rpm::Archive::Tar does Module2Rpm::Role::Archive {
     }
 
     method List(IO::Path $path --> Seq) {
+        $!log.debug("List $path");
         my $proc = run(<tar -tf>, $path.absolute, :out);
 
         die "Tar list archive failed for '$path'" if $proc.exitcode;

@@ -1,5 +1,6 @@
 use JSON::Fast;
 use LWP::Simple;
+use LogP6;
 
 use Module2Rpm::Role::Download;
 use Module2Rpm::Cro::Client;
@@ -27,6 +28,8 @@ With the metadata a packages is created and finally all packages are returned as
 =end pod
 
 class Module2Rpm::Helper {
+    has $!log = get-logger($?CLASS.^name);
+
     has @metadata-sources =
             'https://raw.githubusercontent.com/ugexe/Perl6-ecosystems/master/cpan1.json',
             'https://raw.githubusercontent.com/ugexe/Perl6-ecosystems/master/p6c1.json';
@@ -51,18 +54,11 @@ class Module2Rpm::Helper {
         my %all-metadata;
         my @all-metadata-unfiltered;
         for @!metadata-sources -> $url {
-            #say "Fetch $url";
+            $!log.debug("Fetch $url");
             my $json = $!client.get($url);
-            #say "JSON: ", $json.raku;
             my $obj = from-json($json);
-            #say "OBJ: ", $obj.raku;
             @all-metadata-unfiltered.append: $obj.flat;
-            #say "all: ", @all-metadata-unfiltered.raku;
         }
-
-        # my @all-metadata-unfiltered = @!metadata-sources
-        #     .map({ from-json($!client.get($_))})
-        #     .flat;
 
         # Filter for versions, otherwise not the metadata with the latest version could be in %all-metadata.
         for @all-metadata-unfiltered -> $metadata {
@@ -100,7 +96,7 @@ class Module2Rpm::Helper {
             if self.is-module-name($line) {
                 my $module-metadata = %all-metadata{$line.chomp};
                 unless $module-metadata {
-                    warn "Did not find metadata for module '$line'";
+                    $!log.warn("Did not find metadata for module '$line'");
                     next;
                 }
 

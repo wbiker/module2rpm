@@ -1,3 +1,5 @@
+use LogP6;
+
 use Module2Rpm::Role::FindLibraryName;
 use Module2Rpm::FindLibraryNameWithFindProvides;
 use Module2Rpm::FindLibraryNameForOpenSuse;
@@ -22,6 +24,7 @@ Returns the spec file content as Str.
 =end pod
 
 class Module2Rpm::Spec:ver<0.0.3> {
+    has $!log = get-logger($?CLASS.^name);
     has $.metadata is required;
     has $.requires = 'perl6 >= 2016.12';
     has $.build-requires = "rakudo >= 2017.04.2";
@@ -95,17 +98,18 @@ class Module2Rpm::Spec:ver<0.0.3> {
             @requires.append: flat $!metadata<depends><build><requires>.map({ self.map-dependency($_) })
         }
 
-        @requires.append: flat $!metadata<build-depends>.map({ self.map-dependency($_) })
-                if $!metadata<build-depends>;
-        @requires.push: 'Distribution::Builder' ~ $!metadata<builder> if $!metadata<builder>;
+        @requires.append: flat $!metadata<build-depends>.map({ self.map-dependency($_) }) if $!metadata<build-depends>;
+
+        # Looks like the modules in the "builder" key can be also find in the depends<build><requires>
+        # hash of the metadata. At least for Inline::Perl5. Disable it for now until I find a solution for that.
+        #@requires.push: 'Distribution::Builder' ~ $!metadata<builder> if $!metadata<builder>;
         return @requires.grep( {$_} ).map({"BuildRequires:  $_"}).join("\n");
     }
 
     method map-dependency($requires is copy)  {
-        say "SPEC.map-dependency: '$requires'" if $*DEBUG;
+        $!log.debug("SPEC.map-dependency: '$requires'");
         # Ignoring certain modules, otherwise OBS would complain about missing requirements.
         return if self.is-ignored($requires);
-        my %adverbs;
 
         # This makes problems when trying to build Inline::Perl5
         # "depends": {
@@ -119,25 +123,37 @@ class Module2Rpm::Spec:ver<0.0.3> {
         #       ]
         #     },
 
+        my %adverbs;
         given $requires {
             when Str { %adverbs = flat ($requires ~~ s:g/':' $<key> = (\w+) '<' $<value> = (<-[>]>+) '>'//)
                 .map({$_<key>.Str, $_<value>.Str}); }
-                say "SPEC.map-dependency: Transformed Requires into Hash" if $*DEBUG;
+                $!log.debug("SPEC.map-dependency: Transformed Requires into Hash");
             when Hash {
-                say "SPEC.map-dependency: Requires is allready a Hash: {$requires.raku}'" if $*DEBUG;
+                $!log.debug("SPEC.map-dependency: Requires is allready a Hash: {$requires.raku}'");
                 %adverbs = $requires.Hash;
             }
         }
+
+        $!log.debug("Found adverbs for module: " ~ %adverbs.raku);
+
         given %adverbs<from> {
             when 'native' {
-                say "Spec.map-dependency: Look for native library name: $requires" if $*DEBUG;
+                $!log.debug("Spec.map-dependency: Look for native library name: $requires");
                 return $!find-rpm.find-rpm(:%adverbs, requires => $requires.IO);
             }
-            when 'bin'    { return '%{_bindir}/' ~ $requires }
-            default       { return "perl6($requires)" }
+            when 'bin'    {
+                my $req = '%{_bindir}/' ~ $requires;
+                $!log.debug("Bin requires: $req");
+                return $req;
+            }
+            default       {
+                my $req = "perl6($requires)";
+                $!log.debug("Default requires: $req");
+                return $req;
+            }
         }
 
-        say "Spec.map-dependency: Library name '$requires'" if $*DEBUG;
+        $!log.debug("Spec.map-dependency: Library name '$requires'");
     }
 
     method is-ignored($requires) {
@@ -154,7 +170,9 @@ class Module2Rpm::Spec:ver<0.0.3> {
     }
 
     #| Returns the spec file as String.
-    method get-spec-file(:$readme-file --> Str) {
+    method get-spec-file(:$readme-file, :$license-file --> Str) {
+        $!log.debug("Metadata: " ~ $!metadata.raku);
+
         my $package-name = self.get-name();
         my $version = self.get-version();
         my $license = $!metadata<license> // 'Artistic-2.0';
@@ -164,7 +182,7 @@ class Module2Rpm::Spec:ver<0.0.3> {
         my $requires = self.requires();
         my $build-requires = self.build-requires();
         my $provides = self.provides();
-        my $LICENSE = $!metadata<license-file> ?? "\n%license {$!metadata<license-file>}" !! '';
+        my $LICENSE = $license-file ?? "\n%license {$license-file.basename}" !! '';
         my $RPM_BUILD_ROOT = '$RPM_BUILD_ROOT'; # Workaround for https://rt.perl.org/Ticket/Display.html?id=127226
         my $readme = $readme-file ?? $readme-file.basename !! "";
 
@@ -191,7 +209,7 @@ class Module2Rpm::Spec:ver<0.0.3> {
         Summary:        $summary
         Url:            $source-url
         Group:          Development/Languages/Other
-        Source:         $tar-name
+        Source0:        $tar-name
         BuildRequires:  fdupes
         $build-requires
         $requires
@@ -213,7 +231,7 @@ class Module2Rpm::Spec:ver<0.0.3> {
         find %{buildroot}/%{_datadir}/perl6/vendor/bin/ -type f -exec sed -i -e '1s:!/usr/bin/env :!/usr/bin/:' '{}' \;
         %files
         %defattr(-,root,root)
-        %doc $readme $LICENSE
+        %doc $readme$LICENSE
         %{_datadir}/perl6/vendor
         %changelog
         TEMPLATE

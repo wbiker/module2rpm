@@ -1,4 +1,5 @@
 use Cro::HTTP::Client;
+use LogP6;
 
 =begin pod
 
@@ -42,6 +43,8 @@ Deletes a resource at a URL
 use Module2Rpm::Role::Internet;
 
 class Module2Rpm::Cro::Client does Module2Rpm::Role::Internet {
+    has $!log = get-logger($?CLASS.^name);
+
     has Cro::HTTP::Client $!client;
 
     submethod BUILD(:$auth) {
@@ -56,22 +59,27 @@ class Module2Rpm::Cro::Client does Module2Rpm::Role::Internet {
     }
 
     method get(Str $url) {
+        $!log.debug("GET '$url'");
         my $response = await $!client.get($url);
+        $!log.debug($response.get-response-phrase());
 
         return await $response.body;
     }
 
     method put(Str $url, :$body, :$content-type = "text/html") {
         try {
+            $!log.debug("PUT '$url', content-type: $content-type");
+
             await $!client.put($url, :$content-type, :$body);
 
             CATCH {
-                default { "PUT request failed with { $_ } for '$url'"; }
+                default { $!log.error("PUT request failed with { $_ } for '$url'"); }
             }
         }
     }
 
     method delete(Str $url) {
+        $!log.debug("DELETE '$url'");
         return await $!client.delete($url);
     }
 }

@@ -101,6 +101,27 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
 }
 
 {
+    my $spec = Module2Rpm::Spec.new(metadata => {
+        depends => {
+            runtime => {
+                "requires" => [
+                    "Distribution::Builder::MakeFromJSON:ver<0.6+>",
+                    {
+                        "from" => "bin",
+                        "name"=> "perl"
+                    }
+                ]
+            }
+        }
+    });
+
+    is $spec.requires(), chomp(q:to/SPEC/), "Requires does not return dependency as Hash";
+        Requires:       perl6 >= 2016.12
+        Requires:       perl6(Distribution::Builder::MakeFromJSON)
+        SPEC
+}
+
+{
     my $spec = Module2Rpm::Spec.new(metadata => {});
 
     is $spec.build-requires(), chomp(q:to/META/), "Build-requires returns one dependency";
@@ -157,15 +178,15 @@ my $meta = {
 my $spec = Module2Rpm::Spec.new(metadata => $meta);
 my $spec-file-content = $spec.get-spec-file();
 
-like $spec-file-content, /'Source:         perl6-IO-Prompt-0.0.2.tar.xz'/, "Source found in spec file";
-like $spec-file-content, /'Name:           perl6-IO-Prompt'/, "Name found in spec file";
-like $spec-file-content, /'Version:        0.0.2'/, "Version found in spec file";
-like $spec-file-content, /'Release:        1.1'/, "Release found in spec file";
-like $spec-file-content, /'License:        Artistic-2.0'/, "License found in spec file";
-like $spec-file-content, /'BuildRequires:  fdupes'/, "BuildRequires found in spec file";
-like $spec-file-content, /'BuildRequires:  fdupes' \n 'BuildRequires:  rakudo >= 2017.04.2'/, "BuildRequires found in spec file";
-like $spec-file-content, /'Requires:       perl6 >= 2016.12'/, "Requires found in spec file";
-like $spec-file-content, /'Provides:       perl6(IO::Prompt)'/, "Provides found in spec file";
-like $spec-file-content, /'BuildRoot:      %{_tmppath}/%{name}-%{version}-build'/, "BuildRoot found in spec file";
+like $spec-file-content, /'Source0:' \s+ 'perl6-IO-Prompt-0.0.2.tar.xz'/, "Source0 found in spec file";
+like $spec-file-content, /'Name:' \s+ 'perl6-IO-Prompt'/, "Name found in spec file";
+like $spec-file-content, /'Version:' \s+ '0.0.2'/, "Version found in spec file";
+like $spec-file-content, /'Release:' \s+ '1.1'/, "Release found in spec file";
+like $spec-file-content, /'License:' \s+ 'Artistic-2.0'/, "License found in spec file";
+like $spec-file-content, /'BuildRequires:' \s+ 'fdupes'/, "BuildRequires found in spec file";
+like $spec-file-content, /'BuildRequires:' \s+ 'fdupes' \n 'BuildRequires:  rakudo >= 2017.04.2'/, "BuildRequires found in spec file";
+like $spec-file-content, /'Requires:' \s+ 'perl6 >= 2016.12'/, "Requires found in spec file";
+like $spec-file-content, /'Provides:' \s+ 'perl6(IO::Prompt)'/, "Provides found in spec file";
+like $spec-file-content, /'BuildRoot:' \s+ '%{_tmppath}/%{name}-%{version}-build'/, "BuildRoot found in spec file";
 
 done-testing;
