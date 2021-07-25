@@ -3,7 +3,9 @@ use File::Temp;
 use Config::Clever;
 use Cro::HTTP::Client;
 use JSON::Fast;
-use LogP6;
+use LogP6 :configure;
+
+use lib $*PROGRAM.parent.sibling('lib');
 
 use Module2Rpm::Download::Git;
 use Module2Rpm::Archive::Tar;
@@ -58,7 +60,7 @@ multi MAIN(:h(:$help)) {
 }
 
 #| Downloads, creates spec files and uploads them to OBS for all modules given in a file.
-multi MAIN(:$file!, :$debug?) {
+multi MAIN(:$file!, :$debug, :$dry_run) {
     LogP6::filter(:name<f>, :level(LogP6::<$debug>), :update) if $debug;
 
     $log.info("Parse download file: $file");
@@ -76,13 +78,13 @@ multi MAIN(:$file!, :$debug?) {
 
         my $obs = Module2Rpm::Upload::OBS.new(client => $client, project => $obs-project);
         $log.info("Upload {$package.spec.get-name()} to OBS");
-        $obs.upload-files(package => $package);
+        $obs.upload-files(package => $package) unless $dry_run;
     }
 }
 
 #| Downloads, creates spec file and uploads to OBS a given module.
-multi MAIN(:$module!, :$debug) {
-    LogP6::filter(:name<f>, :level(LogP6::<$debug>), :update) if $debug;
+multi MAIN(:$module!, :$debug, :$dry_run) {
+    filter(:name<f>, :level(LogP6::<$debug>), :update) if $debug;
 
     $log.info("Fetch module metadata...");
     my %all-metadata = $helper.fetch-metadata();
@@ -99,10 +101,12 @@ multi MAIN(:$module!, :$debug) {
     $log.info("Write spec file...");
     $package.write-spec-file();
 
-    my $obs = Module2Rpm::Upload::OBS.new(client => $client, project => $obs-project);
-    $log.info("Upload module to OBS");
-    $obs.upload-files(package => $package);
+    unless $dry_run {
+        my $obs = Module2Rpm::Upload::OBS.new(client => $client, project => $obs-project);
 
+        $log.info("Upload module to OBS");
+        $obs.upload-files(package => $package) unless $dry_run;
+    }
     $log.info("Done");
 }
 
