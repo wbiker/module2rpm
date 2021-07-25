@@ -1,9 +1,9 @@
 use LogP6;
+use Cro::WebApp::Template;
 
 use Module2Rpm::Role::FindLibraryName;
 use Module2Rpm::FindLibraryNameWithFindProvides;
 use Module2Rpm::FindLibraryNameForOpenSuse;
-
 
 =begin pod
 
@@ -68,7 +68,7 @@ class Module2Rpm::Spec:ver<0.0.3> {
                     if $!metadata<depends> ~~ Associative;
         }
 
-        return @requires.grep( {$_} ).map({"Requires:       $_"}).join("\n");
+        return @requires.grep( {$_} ).map({"Requires:       $_"});
     }
 
     method test-requires() {
@@ -103,7 +103,7 @@ class Module2Rpm::Spec:ver<0.0.3> {
         # Looks like the modules in the "builder" key can be also find in the depends<build><requires>
         # hash of the metadata. At least for Inline::Perl5. Disable it for now until I find a solution for that.
         #@requires.push: 'Distribution::Builder' ~ $!metadata<builder> if $!metadata<builder>;
-        return @requires.grep( {$_} ).map({"BuildRequires:  $_"}).join("\n");
+        return @requires.grep( {$_} ).map({"BuildRequires:  $_"});
     }
 
     method map-dependency($requires is copy)  {
@@ -142,7 +142,9 @@ class Module2Rpm::Spec:ver<0.0.3> {
                 return $!find-rpm.find-rpm(:%adverbs, requires => $requires.IO);
             }
             when 'bin'    {
-                my $req = '%{_bindir}/' ~ $requires;
+#                my $req = '%{_bindir}/' ~ $requires;
+#                my $req = '%{_bindir}/' ~ %adverbs<name>;
+                my $req = '/usr/bin/perl';
                 $!log.debug("Bin requires: $req");
                 return $req;
             }
@@ -173,67 +175,25 @@ class Module2Rpm::Spec:ver<0.0.3> {
     method get-spec-file(:$readme-file, :$license-file --> Str) {
         $!log.debug("Metadata: " ~ $!metadata.raku);
 
+        my %data;
         my $package-name = self.get-name();
         my $version = self.get-version();
-        my $license = $!metadata<license> // 'Artistic-2.0';
-        my $summary = self.get-summary();
-        my $source-url = $!metadata<source-url> || $!metadata<support><source>;
         my $tar-name = "{$package-name}-$version.tar.xz";
-        my $requires = self.requires();
-        my $build-requires = self.build-requires();
-        my $provides = self.provides();
-        my $LICENSE = $license-file ?? "\n%license {$license-file.basename}" !! '';
-        my $RPM_BUILD_ROOT = '$RPM_BUILD_ROOT'; # Workaround for https://rt.perl.org/Ticket/Display.html?id=127226
-        my $readme = $readme-file ?? $readme-file.basename !! "";
+        %data<package-name> = $package-name;
+        %data<version> = $version;
+        %data<license> = $!metadata<license> // 'Artistic-2.0';
+        %data<summary> = self.get-summary();
+        %data<source-url> = $!metadata<source-url> || $!metadata<support><source>;
+        %data<tar-name> = $tar-name;
+        %data<requires> = self.requires();
+        %data<build-requires> = self.build-requires();
+        %data<provides> = self.provides();
+        %data<license_file> = $license-file ?? "\n%license {$license-file.basename}" !! '';
+        %data<readme> = $readme-file ?? $readme-file.basename !! "";
 
-        my $template = q:s:to/TEMPLATE/;
-        #
-        # spec file for package $package-name
-        #
-        # Copyright (c) 2017 SUSE LINUX Products GmbH, Nuernberg, Germany.
-        #
-        # All modifications and additions to the file contributed by third parties
-        # remain the property of their copyright owners, unless otherwise agreed
-        # upon. The license for this file, and modifications and additions to the
-        # file, is the same license as for the pristine package itself (unless the
-        # license for the pristine package is not an Open Source License, in which
-        # case the license is the MIT License). An "Open Source License" is a
-        # license that conforms to the Open Source Definition (Version 1.9)
-        # published by the Open Source Initiative.
-        # Please submit bugfixes or comments via http://bugs.opensuse.org/
-        #
-        Name:           $package-name
-        Version:        $version
-        Release:        1.1
-        License:        $license
-        Summary:        $summary
-        Url:            $source-url
-        Group:          Development/Languages/Other
-        Source0:        $tar-name
-        BuildRequires:  fdupes
-        $build-requires
-        $requires
-        $provides
-        BuildRoot:      %{_tmppath}/%{name}-%{version}-build
-        %description
-        $summary
-        %prep
-        %setup -q
-        %build
-        %install
-        RAKUDO_MODULE_DEBUG=1 RAKUDOE_PRECOMP_VERBOSE=1 RAKUDO_RERESOLVE_DEPENDENCIES=0 raku --ll-exception %{_datadir}/perl6/bin/install-perl6-dist \\
-                --to=$RPM_BUILD_ROOT%{_datadir}/perl6/vendor \\
-                --for=vendor \\
-                --from=.
-        %fdupes %{buildroot}/%{_datadir}/perl6/vendor
-        rm -f %{buildroot}%{_datadir}/perl6/vendor/bin/*-j
-        rm -f %{buildroot}%{_datadir}/perl6/vendor/bin/*-js
-        find %{buildroot}/%{_datadir}/perl6/vendor/bin/ -type f -exec sed -i -e '1s:!/usr/bin/env :!/usr/bin/:' '{}' \;
-        %files
-        %defattr(-,root,root)
-        %doc $readme$LICENSE
-        %{_datadir}/perl6/vendor
-        %changelog
-        TEMPLATE
+        my $spec_file_template = %?RESOURCES<spec_file.crotmp>.IO;
+        my $spec_file_content = render-template($spec_file_template, %data);
+
+        return $spec_file_content;
     }
 }

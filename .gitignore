@@ -12,3 +12,4 @@ doc/*.html
 packages/
 *.tar.xz
 config/default.json
+/.racoco

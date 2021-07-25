@@ -1,0 +1,54 @@
+#
+# spec file for package <.package-name>
+#
+# Copyright (c) 2017 SUSE LINUX Products GmbH, Nuernberg, Germany.
+#
+# All modifications and additions to the file contributed by third parties
+# remain the property of their copyright owners, unless otherwise agreed
+# upon. The license for this file, and modifications and additions to the
+# file, is the same license as for the pristine package itself (unless the
+# license for the pristine package is not an Open Source License, in which
+# case the license is the MIT License). An "Open Source License" is a
+# license that conforms to the Open Source Definition (Version 1.9)
+# published by the Open Source Initiative.
+# Please submit bugfixes or comments via http://bugs.opensuse.org/
+#
+Name:           <.package-name>
+Version:        <.version>
+Release:        1.1
+License:        <.license>
+Summary:        <.summary>
+Url:            <.source-url>
+Group:          Development/Languages/Other
+Source0:        <.tar-name>
+BuildRequires:  fdupes
+<@build-requires>
+<&HTML-AND-JAVASCRIPT($_)>
+</@>
+<@requires>
+<&HTML-AND-JAVASCRIPT($_)>
+</@>
+<@provides>
+<&HTML-AND-JAVASCRIPT($_)>
+</@>
+BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+%description
+<.summary>
+%prep
+%setup -q
+%build
+%install
+RAKUDO_MODULE_DEBUG=1 RAKUDOE_PRECOMP_VERBOSE=1 RAKUDO_RERESOLVE_DEPENDENCIES=0 raku --ll-exception %{_datadir}/perl6/bin/install-perl6-dist \
+        --to=$RPM_BUILD_ROOT%{_datadir}/perl6/vendor \
+        --for=vendor \
+        --from=.
+%fdupes %{buildroot}/%{_datadir}/perl6/vendor
+rm -f %{buildroot}%{_datadir}/perl6/vendor/bin/*-j
+rm -f %{buildroot}%{_datadir}/perl6/vendor/bin/*-js
+find %{buildroot}/%{_datadir}/perl6/vendor/bin/ -type f -exec sed -i -e '1s:!/usr/bin/env :!/usr/bin/:' '{}' \;
+%files
+%defattr(-,root,root)
+%doc <.readme>
+<.license_file>
+%{_datadir}/perl6/vendor
+%changelog

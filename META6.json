@@ -1,22 +1,26 @@
 {
-  "auth": "zef:wbiker",
+  "name": "Module2Rpm",
+  "description": "Create RPM's from raku modules.",
+  "version": "0.0.3",
+  "perl": "6.*",
   "authors": [
     "wolf"
   ],
-  "build-depends": [
-  ],
+  "auth": "zef:wbiker",
   "depends": [
     "File::Temp",
     "JSON::Fast",
     "Cro::HTTP",
     "XML",
     "Config::Clever",
-    "LogP6"
+    "LogP6",
+    "IO::Socket::SSL",
+    "Cro::WebApp"
   ],
-  "description": "Create RPM's from raku modules.",
-  "license": "Apache License 2.0",
-  "name": "Module2Rpm",
-  "perl": "6.*",
+  "build-depends": [],
+  "test-depends": [
+    "Test::Mock"
+  ],
   "provides": {
     "Module2Rpm::Archive::Gzip": "lib/Module2Rpm/Archive/Gzip.pm6",
     "Module2Rpm::Archive::Tar": "lib/Module2Rpm/Archive/Tar.rakumod",
@@ -35,12 +39,9 @@
     "Module2Rpm::Upload::OBS": "lib/Module2Rpm/Upload/OBS.rakumod"
   },
   "resources": [
+    "spec_file.crotmp"
   ],
-  "source-url": "https://github.com/wbiker/module2rpm",
-  "tags": [
-  ],
-  "test-depends": [
-      "Test::Mock"
-  ],
-  "version": "0.0.3"
+  "license": "Apache License 2.0",
+  "tags": [],
+  "source-url": "https://github.com/wbiker/module2rpm"
 }
