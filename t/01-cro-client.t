@@ -1,6 +1,7 @@
 use Test;
 use JSON::Fast;
 use File::Temp;
+use lib './lib';
 
 use Module2Rpm::Cro::Client;
 plan 1;

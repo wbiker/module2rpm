@@ -1,6 +1,7 @@
 use Test;
 use File::Temp;
 use Test::Mock;
+use lib './lib';
 
 use Module2Rpm::Package;
 use Module2Rpm::Spec;

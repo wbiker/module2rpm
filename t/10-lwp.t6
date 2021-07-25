@@ -1,5 +1,6 @@
 use Test;
 use Test::Mock;
+use lib './lib';
 
 use Module2Rpm::Role::Internet;
 use Module2Rpm::Internet::LWP;

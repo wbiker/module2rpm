@@ -2,6 +2,7 @@ use Test;
 use XML;
 use File::Temp;
 use Test::Mock;
+use lib './lib';
 
 use Cro::HTTP::Client;
 

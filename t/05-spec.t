@@ -1,5 +1,6 @@
 use Test;
 use File::Temp;
+use lib './lib';
 
 use Module2Rpm::Spec;
 
@@ -43,30 +44,30 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
 {
     my $spec = Module2Rpm::Spec.new(metadata => { depends => ['Dependency', 'Dependency1']});
 
-    is $spec.requires(), chomp(q:to/SPEC/), "Requires returns one dependency";
-        Requires:       perl6 >= 2016.12
-        Requires:       perl6(Dependency)
-        Requires:       perl6(Dependency1)
-        SPEC
+    my @expected =
+        "Requires:       perl6 >= 2016.12",
+        "Requires:       perl6(Dependency)",
+        "Requires:       perl6(Dependency1)";
+    is $spec.requires(), @expected, "Requires returns one dependency";
 }
 
 {
     my $spec = Module2Rpm::Spec.new(metadata => { depends => ["Method::Also"] });
 
-    is $spec.requires(), chomp(q:to/SPEC/), "Requires returns several dependencies";
-        Requires:       perl6 >= 2016.12
-        Requires:       perl6(Method::Also)
-        SPEC
+    my @expected =
+        "Requires:       perl6 >= 2016.12",
+        "Requires:       perl6(Method::Also)";
+    is $spec.requires(), @expected, "Requires returns several dependencies";
 }
 
 {
     my $spec = Module2Rpm::Spec.new(metadata => { depends => { runtime => { "requires" => ["Cairo","Color"] } } });
 
-    is $spec.requires(), chomp(q:to/SPEC/), "Requires returns several runtime dependencies";
-        Requires:       perl6 >= 2016.12
-        Requires:       perl6(Cairo)
-        Requires:       perl6(Color)
-        SPEC
+    my @expected =
+        'Requires:       perl6 >= 2016.12',
+        'Requires:       perl6(Cairo)',
+        'Requires:       perl6(Color)';
+    is $spec.requires(), @expected, "Requires returns several runtime dependencies";
 }
 
 {
@@ -77,10 +78,10 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
         }
     });
 
-    is $spec.requires(), chomp(q:to/SPEC/), "Requires returns test requirements";
-        Requires:       perl6 >= 2016.12
-        Requires:       perl6(Cairo)
-        SPEC
+    my @expected =
+        'Requires:       perl6 >= 2016.12',
+        'Requires:       perl6(Cairo)';
+    is $spec.requires(), @expected, "Requires returns test requirements";
 }
 
 {
@@ -93,11 +94,11 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
         }
     });
 
-    is $spec.requires(), chomp(q:to/SPEC/), "Requires returns several runtime dependencies";
-        Requires:       perl6 >= 2016.12
-        Requires:       perl6(NativeLibs)
-        Requires:       libgpgme.so.11()(64bit)
-        SPEC
+    my @expected =
+        'Requires:       perl6 >= 2016.12',
+        'Requires:       perl6(NativeLibs)',
+        'Requires:       libgpgme.so.11()(64bit)';
+    is $spec.requires(), @expected, "Requires returns several runtime dependencies";
 }
 
 {
@@ -115,28 +116,29 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
         }
     });
 
-    is $spec.requires(), chomp(q:to/SPEC/), "Requires does not return dependency as Hash";
-        Requires:       perl6 >= 2016.12
-        Requires:       perl6(Distribution::Builder::MakeFromJSON)
-        SPEC
+    my @expected =
+        'Requires:       perl6 >= 2016.12',
+        'Requires:       perl6(Distribution::Builder::MakeFromJSON)',
+        'Requires:       /usr/bin/perl';
+    is $spec.requires(), @expected, "Requires does not return dependency as Hash";
 }
 
 {
     my $spec = Module2Rpm::Spec.new(metadata => {});
 
-    is $spec.build-requires(), chomp(q:to/META/), "Build-requires returns one dependency";
-        BuildRequires:  rakudo >= 2017.04.2
-        META
+    my @expected =
+        'BuildRequires:  rakudo >= 2017.04.2';
+    is $spec.build-requires(), @expected, "Build-requires returns one dependency";
 }
 
 {
     my $spec = Module2Rpm::Spec.new(metadata => {build-depends =>  ["LibraryMake","Pod::To::Markdown"]});
 
-    is $spec.build-requires(), chomp(q:to/SPEC/), "Build-requires returns several dependency";
-        BuildRequires:  rakudo >= 2017.04.2
-        BuildRequires:  perl6(LibraryMake)
-        BuildRequires:  perl6(Pod::To::Markdown)
-        SPEC
+    my @expected =
+        'BuildRequires:  rakudo >= 2017.04.2',
+        'BuildRequires:  perl6(LibraryMake)',
+        'BuildRequires:  perl6(Pod::To::Markdown)';
+    is $spec.build-requires(), @expected, "Build-requires returns several dependency";
 }
 
 {
@@ -145,11 +147,11 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
         depends => {build => {"requires" => ["Pod::To::Markdown"]}}
     });
 
-    is $spec.build-requires(), chomp(q:to/SPEC/), 'Build-requires returns also %{requires} dependency';
-        BuildRequires:  rakudo >= 2017.04.2
-        BuildRequires:  perl6(Pod::To::Markdown)
-        BuildRequires:  perl6(LibraryMake)
-        SPEC
+    my @expected =
+        'BuildRequires:  rakudo >= 2017.04.2',
+        'BuildRequires:  perl6(Pod::To::Markdown)',
+        'BuildRequires:  perl6(LibraryMake)';
+    is $spec.build-requires(), @expected, 'Build-requires returns also %{requires} dependency';
 }
 
 my $meta = {

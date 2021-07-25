@@ -1,5 +1,6 @@
 use Test;
 use File::Temp;
+use lib './lib';
 
 use Module2Rpm::FindLibraryNameWithFindProvides;
 
