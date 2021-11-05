@@ -64,7 +64,7 @@ multi MAIN(:h(:$help)) {
 }
 
 #| Downloads, creates spec files and uploads them to OBS for all modules given in a file.
-multi MAIN(:$file!, :$debug, :$dry_run) {
+multi MAIN(:$file!, :$debug, :$dryrun) {
     LogP6::filter(:name<f>, :level(LogP6::<$debug>), :update) if $debug;
 
     $log.info("Parse download file: $file");
@@ -82,12 +82,12 @@ multi MAIN(:$file!, :$debug, :$dry_run) {
 
         my $obs = Module2Rpm::Upload::OBS.new(client => $client, project => $obs-project);
         $log.info("Upload {$package.spec.get-name()} to OBS");
-        $obs.upload-files(package => $package) unless $dry_run;
+        $obs.upload-files(package => $package) unless $dryrun;
     }
 }
 
 #| Downloads, creates spec file and uploads to OBS a given module.
-multi MAIN(:$module!, :$debug, :$dry_run) {
+multi MAIN(:$module!, :$debug, :$dryrun) {
     filter(:name<f>, :level(LogP6::<$debug>), :update) if $debug;
 
     $log.info("Fetch module metadata...");
@@ -105,11 +105,11 @@ multi MAIN(:$module!, :$debug, :$dry_run) {
     $log.info("Write spec file...");
     $package.write-spec-file();
 
-    unless $dry_run {
+    unless $dryrun {
         my $obs = Module2Rpm::Upload::OBS.new(client => $client, project => $obs-project);
 
         $log.info("Upload module to OBS");
-        $obs.upload-files(package => $package) unless $dry_run;
+        $obs.upload-files(package => $package);
     }
     $log.info("Done");
 }
