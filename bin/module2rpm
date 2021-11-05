@@ -114,9 +114,40 @@ multi MAIN(:$module!, :$debug, :$dry_run) {
     $log.info("Done");
 }
 
+#| Creates spec file and uploads to OBS in the current working directory
+multi MAIN('.', :$debug, Bool :$dryrun) {
+    filter(:name<f>, :level(LogP6::<$debug>), :update) if $debug;
+
+    if not 'META6.json'.IO.e {
+        note "META6.json not found in current directory" and exit;
+    }
+
+    my $module-metadata = from-json('META6.json'.IO.slurp);
+
+    my $spec = Module2Rpm::Spec.new(metadata => $module-metadata);
+    my $package = Module2Rpm::Package.new(spec => $spec, path => $destination-path);
+
+    $package.set-readme($*CWD);
+    $package.set-license-file($*CWD);
+
+    $log.info("Write spec file...");
+    $package.write-spec-file();
+
+    $log.info("Create tar archive...");
+    $package.compress($*CWD);
+
+    unless $dryrun {
+        my $obs = Module2Rpm::Upload::OBS.new(client => $client, project => $obs-project);
+
+        $log.info("Upload module to OBS");
+        $obs.upload-files(package => $package);
+    }
+    $log.info("Done");
+}
+
 sub help() {
     say q:to/HELP/;
-    module2rpm --module=module::name | --file=filePath [--debug]
+    module2rpm --module=module::name | --file=filePath | '.' [--debug]
 
     This program downloads the source of a Raku module, writes the spec file
     with the metadata and uploads both files to OBS.
@@ -130,6 +161,9 @@ sub help() {
                                 metadata urls. Download the sources and
                                 uploaded them together with the spec files to
                                 OBS.
+        '.'                     Creates the spec file and tar archive with the current
+                                working directory.
         --debug                 Sets DEBUG logging level
+        --dryrun                Creates spec and tar file but do not upload it to OBS.
     HELP
 }

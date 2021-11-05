@@ -128,15 +128,13 @@ class Module2Rpm::Package {
         @top-level-dirs[0].rename($module-name-path);
 
         # Store readme file name for adding it to the spec file.
-        $!readme-file = self.get-readme($module-name-path);
+        self.set-readme($module-name-path);
 
         # Store license file name for adding it to the spec file.
-        $!license-file = self.get-license-file($module-name-path);
+        self.set-license-file($module-name-path);
 
         # Compress sources with renamed folder as perl6-<module name>-<version>.tar.xz.
-        my $tmp-tar-archive-path = $!tar.Compress($module-name-path, $!tar-name);
-        $tmp-tar-archive-path.copy($!tar-archive-path);
-
+        self.compress($module-name-path);
     }
 
     #| Writes the spec file in the given path.
@@ -162,5 +160,18 @@ class Module2Rpm::Package {
        for $path.dir -> $item {
            return $item if $item.basename ~~ /'LICENSE'/;
        }
+    }
+
+    method set-readme(IO::Path $path) {
+        $!readme-file = self.get-readme($path);
+    }
+
+    method set-license-file(IO::Path $path) {
+        $!license-file = self.get-license-file($path);
+    }
+
+    method compress($module-name-path) {
+        my $tmp-tar-archive-path = $!tar.Compress($module-name-path, $!tar-name);
+        $tmp-tar-archive-path.copy($!tar-archive-path);
     }
 }
