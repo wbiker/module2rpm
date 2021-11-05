@@ -66,6 +66,7 @@ multi MAIN(:h(:$help)) {
 #| Downloads, creates spec files and uploads them to OBS for all modules given in a file.
 multi MAIN(:$file!, Bool :$debug, Bool :$dryrun) {
     LogP6::filter(:name<f>, :level(LogP6::<$debug>), :update) if $debug;
+    $log = get-logger('module2rpm');
 
     $log.info("Parse download file: $file");
     my @packages = $helper.create-packages(path => $destination-path, file => $file.IO);
@@ -89,6 +90,7 @@ multi MAIN(:$file!, Bool :$debug, Bool :$dryrun) {
 #| Downloads, creates spec file and uploads to OBS a given module.
 multi MAIN(:$module!, Bool :$debug, Bool :$dryrun) {
     filter(:name<f>, :level(LogP6::<$debug>), :update) if $debug;
+    $log = get-logger('module2rpm');
 
     $log.info("Fetch module metadata...");
     my %all-metadata = $helper.fetch-metadata();
@@ -117,6 +119,7 @@ multi MAIN(:$module!, Bool :$debug, Bool :$dryrun) {
 #| Creates spec file and uploads to OBS in the current working directory
 multi MAIN('.', Bool :$debug, Bool :$dryrun) {
     filter(:name<f>, :level(LogP6::<$debug>), :update) if $debug;
+    $log = get-logger('module2rpm');
 
     if not 'META6.json'.IO.e {
         note "META6.json not found in current directory" and exit;
@@ -133,8 +136,20 @@ multi MAIN('.', Bool :$debug, Bool :$dryrun) {
     $log.info("Write spec file...");
     $package.write-spec-file();
 
+    # Before creating the tar archive, copy the current working directory content to a new
+    # folder with the name and version of the module. Otherwise the tar archive content is
+    # not the right one and building fails.
+    my $tmpdir = tempdir().IO;
+    $log.debug("Created temp dir for tar archive content: '$tmpdir'");
+    my $dest-tmp-dir = $tmpdir.add($package.module-name-with-version);
+    $dest-tmp-dir.mkdir;
+
+    $log.debug("Copy files to '$dest-tmp-dir'");
+    my @provides = $spec.metadata<provides>.values;
+    recoursive-copy(@provides, $dest-tmp-dir);
+
     $log.info("Create tar archive...");
-    $package.compress($*CWD);
+    $package.compress($dest-tmp-dir);
 
     unless $dryrun {
         my $obs = Module2Rpm::Upload::OBS.new(client => $client, project => $obs-project);
@@ -143,6 +158,21 @@ multi MAIN('.', Bool :$debug, Bool :$dryrun) {
         $obs.upload-files(package => $package);
     }
     $log.info("Done");
+}
+
+sub recoursive-copy(@provides, IO::Path $destination) {
+    for @provides -> IO() $file {
+        my @dir-names = $file.parts.dirname.split($file.SPEC.dir-sep);
+        my $dest = $destination;
+        for @dir-names -> $dir-name {
+            $log.debug("Create sub directory: '$dir-name'");
+            $dest = $dest.add($dir-name);
+            $dest.mkdir;
+        }
+
+        $log.debug("Copy $file");
+        $file.copy($dest.add($file.basename));
+    }
 }
 
 sub help() {
