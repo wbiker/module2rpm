@@ -1,7 +1,7 @@
 {
   "name": "Module2Rpm",
   "description": "Create RPM's from raku modules.",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "perl": "6.*",
   "authors": [
     "wolf"

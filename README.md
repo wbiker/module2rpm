@@ -12,6 +12,8 @@ SYNOPSIS
     # Download the source, write the spec file and upload them to OBS for each line in a file.
     module2rm --file=filePath
 
+    # Creates the spec and tar file with the content of the current working directory.
+
 DESCRIPTION
 ===========
 
@@ -26,6 +28,8 @@ There are two commandline parameter:
 
   * `--file=FilePath` Handles each line in the file as either module name or metadata
   download url.
+
+  * `.` Creates spec and tar archive file with the content of the current working directory
 
 AUTHOR
 ======
