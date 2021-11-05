@@ -15,7 +15,7 @@
 #
 Name:           <.package-name>
 Version:        <.version>
-Release:        1.1
+Release:        <.version>
 License:        <.license>
 Summary:        <.summary>
 Url:            <.source-url>

@@ -183,7 +183,7 @@ my $spec-file-content = $spec.get-spec-file();
 like $spec-file-content, /'Source0:' \s+ 'perl6-IO-Prompt-0.0.2.tar.xz'/, "Source0 found in spec file";
 like $spec-file-content, /'Name:' \s+ 'perl6-IO-Prompt'/, "Name found in spec file";
 like $spec-file-content, /'Version:' \s+ '0.0.2'/, "Version found in spec file";
-like $spec-file-content, /'Release:' \s+ '1.1'/, "Release found in spec file";
+like $spec-file-content, /'Release:' \s+ '0.0.2'/, "Release found in spec file";
 like $spec-file-content, /'License:' \s+ 'Artistic-2.0'/, "License found in spec file";
 like $spec-file-content, /'BuildRequires:' \s+ 'fdupes'/, "BuildRequires found in spec file";
 like $spec-file-content, /'BuildRequires:' \s+ 'fdupes' \n 'BuildRequires:  rakudo >= 2017.04.2'/, "BuildRequires found in spec file";
