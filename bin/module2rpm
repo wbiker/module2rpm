@@ -15,6 +15,10 @@ use Module2Rpm::Helper;
 use Module2Rpm::Upload::OBS;
 use Module2Rpm::Cro::Client;
 
+my %*SUB-MAIN-OPTS =
+  :named-anywhere,    # allow named parameters after positional ones
+;
+
 my $log = get-logger('module2rpm');
 
 my $helper = Module2Rpm::Helper.new;
