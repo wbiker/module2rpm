@@ -1,4 +1,5 @@
 use Test;
+use Test::Mock;
 use File::Temp;
 use lib './lib';
 
@@ -85,20 +86,30 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
 }
 
 {
+    my $find-rpm-mock = mocked Module2Rpm::FindLibraryNameForOpenSuse, returning => {
+        find-rpm => 'libgpgme.so.11()(64bit)';
+    };
+
     my $spec = Module2Rpm::Spec.new(metadata => {
-        depends => {
-            runtime => {
-                "requires" => [ "NativeLibs:ver<0.0.7+>:auth<github:salortiz>",
-                                "gpgme:from<native>:ver<11>"]
-            }
-        }
-    });
+            depends => {
+                runtime => {
+                    "requires" => [ "NativeLibs:ver<0.0.7+>:auth<github:salortiz>",
+                                    "gpgme:from<native>:ver<11>"]
+                }
+            },
+        },
+        find-rpm => $find-rpm-mock,
+    );
 
     my @expected =
         'Requires:       perl6 >= 2016.12',
         'Requires:       perl6(NativeLibs)',
         'Requires:       libgpgme.so.11()(64bit)';
     is $spec.requires(), @expected, "Requires returns several runtime dependencies";
+
+    check-mock($find-rpm-mock, 
+        *.called('find-rpm', times => 1),
+    );
 }
 
 {
@@ -119,7 +130,7 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
     my @expected =
         'Requires:       perl6 >= 2016.12',
         'Requires:       perl6(Distribution::Builder::MakeFromJSON)',
-        'Requires:       /usr/bin/perl';
+        'Requires:       perl';
     is $spec.requires(), @expected, "Requires does not return dependency as Hash";
 }
 

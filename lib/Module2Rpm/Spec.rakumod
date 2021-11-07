@@ -142,10 +142,14 @@ class Module2Rpm::Spec {
                 return $!find-rpm.find-rpm(:%adverbs, requires => $requires.IO);
             }
             when 'bin'    {
-#                my $req = '%{_bindir}/' ~ $requires;
-#                my $req = '%{_bindir}/' ~ %adverbs<name>;
-                my $req = '/usr/bin/perl';
+                if %adverbs<name> eq 'perl' {
+                    $!log.debug("Bin requires: perl");
+                    return "perl";
+                }
+
+                my $req ~= '%{_bindir}/' ~ %adverbs<name>;
                 $!log.debug("Bin requires: $req");
+
                 return $req;
             }
             default       {

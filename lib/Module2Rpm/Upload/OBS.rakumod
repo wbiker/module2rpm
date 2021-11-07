@@ -15,7 +15,7 @@ use Module2Rpm::Package;
 
 =head4 create-package(Module2Rpm::Package :$package)
 
-Creates a package via API at https://build.opensuse.org
+Creates a package via API at https://build.opensuse.org/apidocs/index
 
 =head4 upload-files(Module2Rpm::Package :$package!)
 
