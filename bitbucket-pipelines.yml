@@ -7,10 +7,6 @@ image: jjmerelo/alpine-raku:latest
 
 pipelines:
   default:
-    - step:
-        name: 'install prove6'
-        script:
-          - zef install App::Prove6
     - parallel:
       - step:
           name: 'Build and Test'
