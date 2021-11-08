@@ -11,9 +11,10 @@ pipelines:
       - step:
           name: 'Build and Test'
           script:
-            - ls | echo
+            - ls -l
             - cd $BUILD_DIR
-            - prove6 -Ilib
+            - ls -l
+            - prove6 -Ilib ./t
       - step:
           name: 'Lint'
           script:
