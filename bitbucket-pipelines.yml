@@ -11,8 +11,8 @@ pipelines:
       - step:
           name: 'Build and Test'
           script:
-            - git clone git@bitbucket.org:wolfgangbanston/module2rpm.git module2rpm
-            - cd module2rpm
+            - ls | echo
+            - cd $BUILD_DIR
             - prove6 -Ilib
       - step:
           name: 'Lint'
