@@ -10,7 +10,7 @@ pipelines:
     - step:
         name: 'install prove6'
         script:
-          - zef install prove6
+          - zef install App::Prove6
     - parallel:
       - step:
           name: 'Build and Test'
