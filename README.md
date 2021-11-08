@@ -13,6 +13,7 @@ SYNOPSIS
     module2rm --file=filePath
 
     # Creates the spec and tar file with the content of the current working directory.
+    module2rpm .
 
 DESCRIPTION
 ===========

@@ -147,6 +147,7 @@ multi MAIN('.', Bool :$debug, Bool :$dryrun) {
     $log.debug("Copy files to '$dest-tmp-dir'");
     my @provides = $spec.metadata<provides>.values;
     @provides.push: 'META6.json';
+    @provides.push: 'LICENSE';
     recoursive-copy(@provides, $dest-tmp-dir);
 
     $log.info("Create tar archive...");
