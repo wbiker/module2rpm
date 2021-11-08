@@ -11,7 +11,7 @@ pipelines:
       - step:
           name: 'Build and Test'
           script:
-            - apk add --no-cache openssl-dev
+            - apk add --update --no-cache openssl-dev make
             - zef install --deps-only .
             - prove6 -Ilib ./t
       - step:
