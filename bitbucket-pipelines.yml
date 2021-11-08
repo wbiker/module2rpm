@@ -11,7 +11,7 @@ pipelines:
       - step:
           name: 'Build and Test'
           script:
-            - zef --deps-only .
+            - zef install --deps-only .
             - prove6 -Ilib ./t
       - step:
           name: 'Lint'
