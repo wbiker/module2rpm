@@ -1,5 +1,5 @@
 use Cro::HTTP::Client;
-use LogP6;
+use Logger;
 
 =begin pod
 
@@ -43,7 +43,7 @@ Deletes a resource at a URL
 use Module2Rpm::Role::Internet;
 
 class Module2Rpm::Cro::Client does Module2Rpm::Role::Internet {
-    has $!log = get-logger($?CLASS.^name);
+    has $!log = Logger.get;
 
     has Cro::HTTP::Client $!client;
 

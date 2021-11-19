@@ -1,9 +1,9 @@
-use LogP6;
+use Logger;
 
 use Module2Rpm::Role::Internet;
 
 class Module2Rpm::Internet::LWP does Module2Rpm::Role::Internet {
-    has $!log = get-logger($?CLASS.^name);
+    has $!log = Logger.get;
 
     has $.lwp is required;
 

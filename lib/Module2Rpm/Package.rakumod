@@ -1,5 +1,5 @@
 use File::Temp;
-use LogP6;
+use Logger;
 
 use Module2Rpm::Spec;
 use Module2Rpm::Archive::Tar;
@@ -19,7 +19,7 @@ A OBS package contains a tar archive with the source code and a spec file with t
 
 class Module2Rpm::Package {
     #| Logging
-    has $!log = get-logger($?CLASS.^name);
+    has $!log = Logger.get;
 
     #| Class that handles spec file parameter.
     has Module2Rpm::Spec $.spec is required;

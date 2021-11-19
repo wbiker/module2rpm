@@ -1,4 +1,4 @@
-use LogP6;
+use Logger;
 
 use Module2Rpm::Role::Download;
 
@@ -17,7 +17,7 @@ Module2Rpm::Download::Git.new.Download($url, $path);
 =end pod
 
 class Module2Rpm::Download::Git does Module2Rpm::Role::Download {
-    has $!log = get-logger($?CLASS.^name);
+    has $!log = Logger.get;
 
     method Download(Str $url, IO::Path $path) {
         # Git complains when the $path exists and is not empty. So check for more than '.' and '..'.

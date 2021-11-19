@@ -1,6 +1,6 @@
 use JSON::Fast;
 use LWP::Simple;
-use LogP6;
+use Logger;
 
 use Module2Rpm::Role::Download;
 use Module2Rpm::Cro::Client;
@@ -28,7 +28,7 @@ With the metadata a packages is created and finally all packages are returned as
 =end pod
 
 class Module2Rpm::Helper {
-    has $!log = get-logger($?CLASS.^name);
+    has $!log = Logger.get;
 
     has @metadata-sources =
             'https://raw.githubusercontent.com/ugexe/Perl6-ecosystems/master/cpan1.json',

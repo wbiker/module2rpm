@@ -1,4 +1,4 @@
-use LogP6;
+use Logger;
 
 use Module2Rpm::Role::Archive;
 
@@ -49,7 +49,7 @@ Returns all files in an archive.
 =end pod
 
 class Module2Rpm::Archive::Tar does Module2Rpm::Role::Archive {
-    has $!log = get-logger($?CLASS.^name);
+    has $!log = Logger.get;
 
     method Extract(IO::Path $path) {
         $!log.debug("Extract $path");

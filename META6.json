@@ -13,7 +13,7 @@
     "Cro::HTTP",
     "XML",
     "Config::Clever",
-    "LogP6",
+    "Logger",
     "IO::Socket::SSL",
     "Cro::WebApp"
   ],

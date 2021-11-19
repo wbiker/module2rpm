@@ -1,5 +1,5 @@
-use LogP6;
 use Cro::WebApp::Template;
+use Logger;
 
 use Module2Rpm::Role::FindLibraryName;
 use Module2Rpm::FindLibraryNameWithFindProvides;
@@ -24,7 +24,7 @@ Returns the spec file content as Str.
 =end pod
 
 class Module2Rpm::Spec {
-    has $!log = get-logger($?CLASS.^name);
+    has $log = Logger.get;
     has $.metadata is required;
     has $.requires = 'perl6 >= 2016.12';
     has $.build-requires = "rakudo >= 2017.04.2";

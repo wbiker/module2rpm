@@ -1,5 +1,5 @@
 use XML;
-use LogP6;
+use Logger;
 
 use Module2Rpm::Role::Internet;
 use Module2Rpm::Package;
@@ -24,7 +24,7 @@ Uploads the source tar archive file and the spec file of a package.
 =end pod
 
 class Module2Rpm::Upload::OBS {
-    has $!log = get-logger($?CLASS.^name);
+    has $!log = Logger.get;
     has Module2Rpm::Role::Internet $.client is required;
     has $.project is required;
     has Set $.packages;

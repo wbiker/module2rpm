@@ -1,6 +1,6 @@
 use File::Temp;
 use XML;
-use LogP6;
+use Logger;
 
 use Module2Rpm::Role::FindLibraryName;
 use Module2Rpm::Role::Internet;
@@ -28,7 +28,7 @@ version or when the library name was not found in the file guessing work starts.
 
 unit class Module2Rpm::FindLibraryNameForOpenSuse does Module2Rpm::Role::FindLibraryName;
 
-has $!log = get-logger($?CLASS.^name);
+has $!log = Logger.get;
 has $!repodata = 'http://download.opensuse.org/distribution/openSUSE-current/repo/oss/';
 has $!repodata-repomd-xml = 'repodata/repomd.xml';   # This file contains the name of the primary.xml file which we need.
 has Module2Rpm::Role::Internet $.client = Module2Rpm::Cro::Client.new;
