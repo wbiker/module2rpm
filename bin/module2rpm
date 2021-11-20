@@ -19,7 +19,8 @@ my %*SUB-MAIN-OPTS =
   :named-anywhere,    # allow named parameters after positional ones
 ;
 
-my $log = Logger.new(:pattern('[%d][%X{name}][%c] %m%n'));
+# my $log = Logger.new(formatter => -> $dt { sprintf "%sT%s", .dd-mm-yyyy, .hh-mm-ss given $dt });
+my $log = Logger.new;
 Logger.add($log);
 
 my $helper = Module2Rpm::Helper.new;

@@ -14,6 +14,7 @@
     "XML",
     "Config::Clever",
     "Logger",
+    "LWP::Simple",
     "IO::Socket::SSL",
     "Cro::WebApp"
   ],
