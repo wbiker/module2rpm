@@ -11,6 +11,7 @@ pipelines:
       - step:
           name: 'Build and Test'
           script:
+            - zef install App::Prove6;
             - zef install --deps-only .
             - prove6 -Ilib ./t
       - step:
