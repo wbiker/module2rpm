@@ -28,7 +28,8 @@ $tar.Extract($archive-file);
     -x  --extract   Extract files from an archive.
     -J  --xz        Filter the archive through xz.
     -C              Change working directory before do work.
-    --exclude-vcs   Ignore vcs files. E.g.: .ignore for git repositories.
+    --exclude-vcs   Ignore vcs files. E.g.: .ignore for git repositories. Not
+                        working in pipelines with docker and BusyBox v1.34.1. Use --exclude instead
 =end code
 
 =head2 Methods
@@ -60,7 +61,7 @@ class Module2Rpm::Archive::Tar does Module2Rpm::Role::Archive {
 
     method Compress(IO::Path $path, Str $name --> IO::Path) {
         $!log.debug("Compress $path with name $name");
-        my $proc = run <tar --exclude-vcs -cJf>, $name, "-C", $path.parent.absolute, $path.basename, :cwd($path.parent);
+        my $proc = run <tar --exclude=.git -cJf>, $name, "-C", $path.parent.absolute, $path.basename, :cwd($path.parent);
 
         die "Tar compress failed for '$path'" if $proc.exitcode;
 
