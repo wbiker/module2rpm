@@ -40,7 +40,9 @@ unless $config-file.e {
     my %new-config;
     %new-config<obs-user> = prompt "Enter OBS user: ";
     %new-config<obs-password> = prompt "Enter OBS password: ";
-    %new-config<obs-project> = prompt "Enter OBS project: ";
+    my $project = "home:{%new-config<obs-user>}";
+    %new-config<obs-project> = prompt "Enter OBS project: ($project)";
+    %new-config<obs-project> = $project unless %new-config<obs-project>;
 
     $config-file.spurt(to-json(%new-config));
 }
