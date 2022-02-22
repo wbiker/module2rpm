@@ -164,7 +164,7 @@ class Module2Rpm::Spec {
 
     method is-ignored($requires) {
         # Ignore core modules:
-        return True if $requires ~~ /'NativeCall' | 'Test' /;
+        return True if $requires eq 'NativeCall'|'Test';
 
         return False;
     }
