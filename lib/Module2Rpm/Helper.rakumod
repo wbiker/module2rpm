@@ -32,7 +32,8 @@ class Module2Rpm::Helper {
 
     has @metadata-sources =
             'https://raw.githubusercontent.com/ugexe/Perl6-ecosystems/master/cpan1.json',
-            'https://raw.githubusercontent.com/ugexe/Perl6-ecosystems/master/p6c1.json';
+            'https://raw.githubusercontent.com/ugexe/Perl6-ecosystems/master/p6c1.json',
+            'https://360.zef.pm/index.json';
 
     # Issue: https://github.com/croservices/cro-http/issues/122
     # FIX failing Cro::HTTP::Client here. For whatever reason the Cro::HTTP::Client dies to download one of the json
