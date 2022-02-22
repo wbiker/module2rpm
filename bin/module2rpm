@@ -146,7 +146,7 @@ multi MAIN('.', Bool :$debug, Bool :$dryrun) {
     my @provides = $spec.metadata<provides>.values;
     @provides.push: 'META6.json';
     @provides.push: 'LICENSE';
-    recoursive-copy(@provides, $dest-tmp-dir);
+    recursive-copy(@provides, $dest-tmp-dir);
 
     $log.info("Create tar archive...");
     $package.compress($dest-tmp-dir);
@@ -160,7 +160,7 @@ multi MAIN('.', Bool :$debug, Bool :$dryrun) {
     $log.info("Done");
 }
 
-sub recoursive-copy(@provides, IO::Path $destination) {
+sub recursive-copy(@provides, IO::Path $destination) {
     for @provides -> IO() $file {
         my @dir-names = $file.parts.dirname.split($file.SPEC.dir-sep);
         my $dest = $destination;

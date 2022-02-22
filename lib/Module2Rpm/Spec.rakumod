@@ -129,7 +129,7 @@ class Module2Rpm::Spec {
                 .map({$_<key>.Str, $_<value>.Str}); }
                 $!log.debug("SPEC.map-dependency: Transformed Requires into Hash");
             when Hash {
-                $!log.debug("SPEC.map-dependency: Requires is allready a Hash: {$requires.raku}'");
+                $!log.debug("SPEC.map-dependency: Requires is already a Hash: {$requires.raku}'");
                 %adverbs = $requires.Hash;
             }
         }
