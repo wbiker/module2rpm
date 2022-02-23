@@ -201,5 +201,9 @@ like $spec-file-content, /'BuildRequires:' \s+ 'fdupes' \n 'BuildRequires:  raku
 like $spec-file-content, /'Requires:' \s+ 'perl6 >= 2016.12'/, "Requires found in spec file";
 like $spec-file-content, /'Provides:' \s+ 'perl6(IO::Prompt)'/, "Provides found in spec file";
 like $spec-file-content, /'BuildRoot:' \s+ '%{_tmppath}/%{name}-%{version}-build'/, "BuildRoot found in spec file";
+unlike $spec-file-content, /'rakudo -e \'require Build:file('/, 'build command not found if build-file not found';
+
+$spec-file-content = $spec.get-spec-file(build-file => IO::Path.new('Build.pm'));
+like $spec-file-content, /'rakudo -e \'require Build:file('/, 'build command found with build file';
 
 done-testing;

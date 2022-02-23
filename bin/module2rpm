@@ -130,6 +130,7 @@ multi MAIN('.', Bool :$debug, Bool :$dryrun) {
 
     $package.set-readme($*CWD);
     $package.set-license-file($*CWD);
+    $package.set-build-file($*CWD);
 
     $log.info("Write spec file...");
     $package.write-spec-file();

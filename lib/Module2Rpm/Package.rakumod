@@ -54,6 +54,9 @@ class Module2Rpm::Package {
     #| The license file of the package.
     has IO::Path $.license-file;
 
+    #| If found the Build file to start for the module.
+    has IO::Path $.build-file;
+
     #| Class used to download via Cro::HTTP::Client.
     has Module2Rpm::Role::Internet $.client;
 
@@ -102,8 +105,19 @@ class Module2Rpm::Package {
             $downloaded-item = $download-dir.add($!module-name-with-version);
             $!log.debug("Download $!source-url to $downloaded-item");
             $!git.Download($!source-url, $downloaded-item);
+
+            # Store readme file name for adding it to the spec file.
+            self.set-readme($downloaded-item.IO);
+
+            # Store license file name for adding it to the spec file.
+            self.set-license-file($downloaded-item.IO);
+
+            # Look for a Build.pm, Build.pm6 or Build.rakumod file to add build command to spec file.
+            self.set-build-file($downloaded-item.IO);
+
             my $git-repo-tar-archive-path = $!tar.Compress($downloaded-item, $!tar-name);
             $git-repo-tar-archive-path.copy($!tar-archive-path);
+
             return;
         }
 
@@ -133,6 +147,9 @@ class Module2Rpm::Package {
         # Store license file name for adding it to the spec file.
         self.set-license-file($module-name-path);
 
+        # Look for a Build.pm, Build.pm6 or Build.rakumod file to add build command to spec file.
+        self.set-build-file($module-name-path);
+
         # Compress sources with renamed folder as perl6-<module name>-<version>.tar.xz.
         self.compress($module-name-path);
     }
@@ -141,9 +158,11 @@ class Module2Rpm::Package {
     method write-spec-file() {
         my $spec-file-content = $!spec.get-spec-file(
             readme-file  => $!readme-file.IO,
-            license-file => $!license-file.IO
+            license-file => $!license-file.IO,
+            build-file   => $!build-file.IO,
         );
         $!spec-file-path.spurt($spec-file-content);
+        $!log.debug($spec-file-content);
     }
 
     method is-git-repository() {
@@ -168,6 +187,20 @@ class Module2Rpm::Package {
 
     method set-license-file(IO::Path $path) {
         $!license-file = self.get-license-file($path);
+    }
+
+    method get-build-file(IO::Path $path) {
+        for $path.dir -> $item {
+            return $item if $item.basename.starts-with('Build.');
+        }
+    }
+
+    method set-build-file(IO::Path $path) {
+        my $build-file = self.get-build-file($path);
+        return unless $build-file;
+
+        $!log.debug("Build file found '$build-file'");
+        $!build-file = $build-file;
     }
 
     method compress($module-name-path) {

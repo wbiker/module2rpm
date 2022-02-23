@@ -176,8 +176,10 @@ class Module2Rpm::Spec {
     }
 
     #| Returns the spec file as String.
-    method get-spec-file(:$readme-file, :$license-file --> Str) {
+    method get-spec-file(:$readme-file, :$license-file, :$build-file --> Str) {
         $!log.debug("Metadata: " ~ $!metadata.raku);
+
+        my $build-command = $build-file ?? "rakudo -e 'require Build:file(\"" ~ $build-file.basename ~ '".IO.absolute); ::("Build").build($*CWD.Str)\'' !! '';
 
         my %data;
         my $package-name = self.get-name();
@@ -194,6 +196,7 @@ class Module2Rpm::Spec {
         %data<provides> = self.provides();
         %data<license_file> = $license-file ?? "\n%license {$license-file.basename}" !! '';
         %data<readme> = $readme-file ?? $readme-file.basename !! "";
+        %data<build-file> = $build-command;
 
         my $spec_file_template = %?RESOURCES<spec_file.crotmp>.IO;
         my $spec_file_content = render-template($spec_file_template, %data);
