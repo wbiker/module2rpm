@@ -84,6 +84,8 @@ use Module2Rpm::Helper;
             ],
             "version": "0.0.1"
         }
+    ]',
+    '[
     ]').iterator;
 
     my $client_mock = mocked Module2Rpm::Cro::Client, computing => {
@@ -190,6 +192,7 @@ use Module2Rpm::Helper;
                 "version" : "0.0.5"
             }
             ]',
+            '[]',
     # This is the return string from the metadata download.
     # Must not be an array.
         '{
@@ -258,7 +261,8 @@ use Module2Rpm::Helper;
               "name": "Test::Module::For::Version",
               "version": "0.0.1"
         }
-    ]').iterator;
+    ]',
+    '[]').iterator;
     my $client_mock = mocked Module2Rpm::Cro::Client, computing => {
         get => { $return_strings.pull-one },
     };

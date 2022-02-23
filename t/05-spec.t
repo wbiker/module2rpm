@@ -43,22 +43,22 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
 }
 
 {
-    my $spec = Module2Rpm::Spec.new(metadata => { depends => ['Dependency', 'Dependency1']});
+    my $spec = Module2Rpm::Spec.new(metadata => { depends => ['Dependency', 'Test::Assertion']});
 
     my @expected =
         "Requires:       perl6 >= 2016.12",
         "Requires:       perl6(Dependency)",
-        "Requires:       perl6(Dependency1)";
-    is $spec.requires(), @expected, "Requires returns one dependency";
+        "Requires:       perl6(Test::Assertion)";
+    is $spec.requires(), @expected, "Requires returns several dependencies";
 }
 
 {
-    my $spec = Module2Rpm::Spec.new(metadata => { depends => ["Method::Also"] });
+    my $spec = Module2Rpm::Spec.new(metadata => { depends => ["Method::Also", "Test"] });
 
     my @expected =
         "Requires:       perl6 >= 2016.12",
         "Requires:       perl6(Method::Also)";
-    is $spec.requires(), @expected, "Requires returns several dependencies";
+    is $spec.requires(), @expected, "Requires returns one dependency";
 }
 
 {
