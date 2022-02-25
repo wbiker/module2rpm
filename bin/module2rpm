@@ -90,7 +90,7 @@ multi MAIN(:$file!, Bool :$debug, Bool :$dryrun) {
 }
 
 #| Downloads, creates spec file and uploads to OBS a given module.
-multi MAIN(:$module!, Bool :$debug, Bool :$dryrun) {
+multi MAIN(:$module!, Bool :$debug, Bool :$dryrun, :$dir) {
     $log.level = Logger::DEBUG if $debug;
     $log.info("Fetch module metadata...");
     my %all-metadata = $helper.fetch-metadata();
@@ -102,7 +102,8 @@ multi MAIN(:$module!, Bool :$debug, Bool :$dryrun) {
     my $package = Module2Rpm::Package.new(spec => $spec, path => $destination-path);
 
     $log.info("Download module source...");
-    $package.Download();
+    $dir.IO.mkdir unless $dir.IO.e;
+    $package.Download($dir);
 
     $log.info("Write spec file...");
     $package.write-spec-file();
