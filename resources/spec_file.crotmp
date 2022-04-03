@@ -43,7 +43,7 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 </?>
 
 %install
-RAKUDO_MODULE_DEBUG=1 RAKUDOE_PRECOMP_VERBOSE=1 RAKUDO_RERESOLVE_DEPENDENCIES=0 raku --ll-exception %{_datadir}/perl6/bin/install-perl6-dist \
+RAKUDO_MODULE_DEBUG=1 RAKUDO_PRECOMP_VERBOSE=1 RAKUDO_RERESOLVE_DEPENDENCIES=0 raku --ll-exception %{_datadir}/perl6/bin/install-perl6-dist \
         --to=$RPM_BUILD_ROOT%{_datadir}/perl6/vendor \
         --for=vendor \
         --from=.
