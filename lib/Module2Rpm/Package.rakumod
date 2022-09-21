@@ -95,7 +95,7 @@ class Module2Rpm::Package {
     #| Downloads the source in a temporary folder and uses tar to create a compressed archive of it.
     #| In case of a tarball file as source, the archive is extracted an the root folder is renamed to the module name.
     #| Then the root folder is compressed with tar again and the archive file is copied to the destination.
-    method Download($downloaddir) {
+    method Download($downloaddir?) {
         my $download-dir = $downloaddir.?IO // tempdir().IO;
         $!log.debug("Temporary download folder: $download-dir");
         my $downloaded-item;
