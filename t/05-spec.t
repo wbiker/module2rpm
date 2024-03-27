@@ -14,7 +14,7 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
 
 {
     my $spec = Module2Rpm::Spec.new(metadata => { name => "Module::Name" });
-    is $spec.get-name(), "perl6-Module-Name", "Get-Name returns expected name";
+    is $spec.get-name(), "raku-Module-Name", "Get-Name returns expected name";
 }
 
 {
@@ -22,7 +22,7 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
         name => 'ModuleName',
         provides => { 'ModuleName' => 'lib/ModuleName' }
     });
-    is $spec.provides(), "Provides:       perl6(ModuleName)", "Provides returns proper string";
+    is $spec.provides(), "Provides:       raku(ModuleName)\nProvides:       perl6(ModuleName)", "Provides returns proper string";
 }
 
 {
@@ -32,23 +32,34 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
                         'ModuleName::Name' => 'lib/ModuleName/Name' }
     });
     is $spec.provides(), chomp(q:to/SPEC/), "Provides returns proper string";
+        Provides:       raku(ModuleName)
         Provides:       perl6(ModuleName)
+        Provides:       raku(ModuleName::Name)
         Provides:       perl6(ModuleName::Name)
         SPEC
 }
 
 {
+    my $spec = Module2Rpm::Spec.new(metadata => {
+        name => 'ModuleName',
+    });
+    is $spec.obsoletes(), chomp(q:to/SPEC/), "Obsoletes the Perl6 package";
+        Obsoletes:      perl6-ModuleName
+        SPEC
+}
+
+{
     my $spec = Module2Rpm::Spec.new(metadata => {});
-    is $spec.requires(), "Requires:       perl6 >= 2016.12", "Requires returns one dependency";
+    is $spec.requires(), "Requires:       raku >= 2016.12", "Requires returns one dependency";
 }
 
 {
     my $spec = Module2Rpm::Spec.new(metadata => { depends => ['Dependency', 'Test::Assertion']});
 
     my @expected =
-        "Requires:       perl6 >= 2016.12",
-        "Requires:       perl6(Dependency)",
-        "Requires:       perl6(Test::Assertion)";
+        "Requires:       raku >= 2016.12",
+        "Requires:       raku(Dependency)",
+        "Requires:       raku(Test::Assertion)";
     is $spec.requires(), @expected, "Requires returns several dependencies";
 }
 
@@ -56,8 +67,8 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
     my $spec = Module2Rpm::Spec.new(metadata => { depends => ["Method::Also", "Test"] });
 
     my @expected =
-        "Requires:       perl6 >= 2016.12",
-        "Requires:       perl6(Method::Also)";
+        "Requires:       raku >= 2016.12",
+        "Requires:       raku(Method::Also)";
     is $spec.requires(), @expected, "Requires returns one dependency";
 }
 
@@ -65,9 +76,9 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
     my $spec = Module2Rpm::Spec.new(metadata => { depends => { runtime => { "requires" => ["Cairo","Color"] } } });
 
     my @expected =
-        'Requires:       perl6 >= 2016.12',
-        'Requires:       perl6(Cairo)',
-        'Requires:       perl6(Color)';
+        'Requires:       raku >= 2016.12',
+        'Requires:       raku(Cairo)',
+        'Requires:       raku(Color)';
     is $spec.requires(), @expected, "Requires returns several runtime dependencies";
 }
 
@@ -80,8 +91,8 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
     });
 
     my @expected =
-        'Requires:       perl6 >= 2016.12',
-        'Requires:       perl6(Cairo)';
+        'Requires:       raku >= 2016.12',
+        'Requires:       raku(Cairo)';
     is $spec.requires(), @expected, "Requires returns test requirements";
 }
 
@@ -102,8 +113,8 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
     );
 
     my @expected =
-        'Requires:       perl6 >= 2016.12',
-        'Requires:       perl6(NativeLibs)',
+        'Requires:       raku >= 2016.12',
+        'Requires:       raku(NativeLibs)',
         'Requires:       libgpgme.so.11()(64bit)';
     is $spec.requires(), @expected, "Requires returns several runtime dependencies";
 
@@ -128,8 +139,8 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
     });
 
     my @expected =
-        'Requires:       perl6 >= 2016.12',
-        'Requires:       perl6(Distribution::Builder::MakeFromJSON)',
+        'Requires:       raku >= 2016.12',
+        'Requires:       raku(Distribution::Builder::MakeFromJSON)',
         'Requires:       perl';
     is $spec.requires(), @expected, "Requires does not return dependency as Hash";
 }
@@ -147,8 +158,8 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
 
     my @expected =
         'BuildRequires:  rakudo >= 2017.04.2',
-        'BuildRequires:  perl6(LibraryMake)',
-        'BuildRequires:  perl6(Pod::To::Markdown)';
+        'BuildRequires:  raku(LibraryMake)',
+        'BuildRequires:  raku(Pod::To::Markdown)';
     is $spec.build-requires(), @expected, "Build-requires returns several dependency";
 }
 
@@ -160,8 +171,8 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
 
     my @expected =
         'BuildRequires:  rakudo >= 2017.04.2',
-        'BuildRequires:  perl6(Pod::To::Markdown)',
-        'BuildRequires:  perl6(LibraryMake)';
+        'BuildRequires:  raku(Pod::To::Markdown)',
+        'BuildRequires:  raku(LibraryMake)';
     is $spec.build-requires(), @expected, 'Build-requires returns also %{requires} dependency';
 }
 
@@ -191,15 +202,15 @@ my $meta = {
 my $spec = Module2Rpm::Spec.new(metadata => $meta);
 my $spec-file-content = $spec.get-spec-file();
 
-like $spec-file-content, /'Source0:' \s+ 'perl6-IO-Prompt-0.0.2.tar.xz'/, "Source0 found in spec file";
-like $spec-file-content, /'Name:' \s+ 'perl6-IO-Prompt'/, "Name found in spec file";
+like $spec-file-content, /'Source0:' \s+ 'raku-IO-Prompt-0.0.2.tar.xz'/, "Source0 found in spec file";
+like $spec-file-content, /'Name:' \s+ 'raku-IO-Prompt'/, "Name found in spec file";
 like $spec-file-content, /'Version:' \s+ '0.0.2'/, "Version found in spec file";
 like $spec-file-content, /'Release:' \s+ '0.0.2'/, "Release found in spec file";
 like $spec-file-content, /'License:' \s+ 'Artistic-2.0'/, "License found in spec file";
 like $spec-file-content, /'BuildRequires:' \s+ 'fdupes'/, "BuildRequires found in spec file";
 like $spec-file-content, /'BuildRequires:' \s+ 'fdupes' \n 'BuildRequires:  rakudo >= 2017.04.2'/, "BuildRequires found in spec file";
-like $spec-file-content, /'Requires:' \s+ 'perl6 >= 2016.12'/, "Requires found in spec file";
-like $spec-file-content, /'Provides:' \s+ 'perl6(IO::Prompt)'/, "Provides found in spec file";
+like $spec-file-content, /'Requires:' \s+ 'raku >= 2016.12'/, "Requires found in spec file";
+like $spec-file-content, /'Provides:' \s+ 'raku(IO::Prompt)'/, "Provides found in spec file";
 like $spec-file-content, /'BuildRoot:' \s+ '%{_tmppath}/%{name}-%{version}-build'/, "BuildRoot found in spec file";
 unlike $spec-file-content, /'rakudo -e \'require Build:file('/, 'build command not found if build-file not found';
 

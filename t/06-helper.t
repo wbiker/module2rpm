@@ -245,8 +245,8 @@ use Module2Rpm::Helper;
         END
     );
     my @packages = $helper.create-packages(path => tempdir().IO, file => $tempfile);
-    is @packages[0].module-name(), "perl6-IO-Prompt", "create-packages has first module";
-    is @packages[1].module-name(), "perl6-CSS", "create-packages has second module";
+    is @packages[0].module-name(), "raku-IO-Prompt", "create-packages has first module";
+    is @packages[1].module-name(), "raku-CSS", "create-packages has second module";
 }
 {
     my $return_strings = (

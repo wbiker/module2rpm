@@ -26,7 +26,7 @@ Returns the spec file content as Str.
 class Module2Rpm::Spec {
     has $log = Logger.get;
     has $.metadata is required;
-    has $.requires = 'perl6 >= 2016.12';
+    has $.requires = 'raku >= 2016.12';
     has $.build-requires = "rakudo >= 2017.04.2";
     has Module2Rpm::Role::FindLibraryName $.find-rpm = Module2Rpm::FindLibraryNameForOpenSuse.new;
 
@@ -34,11 +34,11 @@ class Module2Rpm::Spec {
         return $!metadata<source-url> || $!metadata<support><source>;
     }
 
-    #| Returns the module name changed to perl6-<module name with '::' replaced by '-'>.
+    #| Returns the module name changed to raku-<module name with '::' replaced by '-'>.
     method get-name( --> Str) {
         die "Spec: Metadata does not provide module name!\n" ~ $!metadata.raku unless $!metadata<name>;
 
-        return "perl6-{ $!metadata<name>.subst: /'::'/, '-', :g }"
+        return "raku-{ $!metadata<name>.subst: /'::'/, '-', :g }"
     }
 
     #| Returns the version found in the metadata. For '*' versions 0.1 is returned.
@@ -49,11 +49,11 @@ class Module2Rpm::Spec {
     }
 
     #| Returns a list of the provided files with the pattern:
-    #| Provides:       perl6(<name of the provided file>)
+    #| Provides:       raku(<name of the provided file>)
     method provides() {
         die "Spec: Metadata does not provide a module name" unless $!metadata<name>;
 
-        return ($!metadata<name>, |$!metadata<provides>.keys).unique.sort.map({"Provides:       perl6($_)"}).join("\n");
+        return ($!metadata<name>, |$!metadata<provides>.keys).unique.sort.map({"Provides:       raku($_)\nProvides:       perl6($_)"}).join("\n");
     }
 
     #| Returns a list of the required modules with the pattern:
@@ -106,6 +106,13 @@ class Module2Rpm::Spec {
         return @requires.grep( {$_} ).map({"BuildRequires:  $_"});
     }
 
+    #| Obsoletes the old package before the Perl6 -> Raku rename
+    method obsoletes( --> Str) {
+        die "Spec: Metadata does not provide module name!\n" ~ $!metadata.raku unless $!metadata<name>;
+
+        return "Obsoletes:      perl6-{ $!metadata<name>.subst: /'::'/, '-', :g }"
+    }
+
     method map-dependency($requires is copy)  {
         $!log.debug("SPEC.map-dependency: '$requires'");
         # Ignoring certain modules, otherwise OBS would complain about missing requirements.
@@ -153,7 +160,7 @@ class Module2Rpm::Spec {
                 return $req;
             }
             default       {
-                my $req = "perl6($requires)";
+                my $req = "raku($requires)";
                 $!log.debug("Default requires: $req");
                 return $req;
             }
@@ -194,6 +201,7 @@ class Module2Rpm::Spec {
         %data<requires> = self.requires();
         %data<build-requires> = self.build-requires();
         %data<provides> = self.provides();
+        %data<obsoletes> = self.obsoletes();
         %data<license_file> = $license-file ?? "\n%license {$license-file.basename}" !! '';
         %data<readme> = $readme-file ?? $readme-file.basename !! "";
         %data<build-file> = $build-command;

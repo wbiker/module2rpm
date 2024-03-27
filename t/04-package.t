@@ -6,7 +6,7 @@ use lib './lib';
 use Module2Rpm::Package;
 use Module2Rpm::Spec;
 
-my $module-name-prefix = "perl6-";
+my $module-name-prefix = "raku-";
 
 my $metadata = {
     name => 'Module::Name',

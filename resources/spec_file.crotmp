@@ -31,6 +31,7 @@ BuildRequires:  fdupes
 <@provides>
 <&HTML-AND-JAVASCRIPT($_)>
 </@>
+<.obsoletes>
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 %global debug_package %{nil}
 %description
