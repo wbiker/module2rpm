@@ -16,7 +16,8 @@
     "Logger",
     "LWP::Simple",
     "IO::Socket::SSL",
-    "Cro::WebApp"
+    "Cro::WebApp",
+    "System::Query"
   ],
   "build-depends": [],
   "test-depends": [
