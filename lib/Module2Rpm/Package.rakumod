@@ -42,11 +42,17 @@ class Module2Rpm::Package {
     #| The spec file name.
     has Str $.spec-file-name;
 
+    #| The changes file name.
+    has Str $.changes-file-name;
+
     #| Path of the local tar archive.
     has IO::Path $.tar-archive-path;
 
     #| Path of the local spec file.
     has IO::Path $.spec-file-path;
+
+    #| Path of the local changes file.
+    has IO::Path $.changes-file-path;
 
     #| The readme file of the package.
     has IO::Path $.readme-file;
@@ -85,6 +91,8 @@ class Module2Rpm::Package {
 
         $!spec-file-name = $!module-name ~ ".spec";
         $!spec-file-path = $!path.add($!spec-file-name);
+        $!changes-file-name = $!module-name ~ ".changes";
+        $!changes-file-path = $!path.add($!changes-file-name);
         $!tar-archive-path = $!path.add($!tar-name);
 
         $!client = $client;
@@ -163,6 +171,10 @@ class Module2Rpm::Package {
         );
         $!spec-file-path.spurt($spec-file-content);
         $!log.debug($spec-file-content);
+
+        # The changes file is technically just a swapped out part of the spec file, so
+        # it's not too bad to update it as part of writing the spec file
+        run('/usr/bin/osc', 'vc', $!changes-file-path, '-m', "Update to version $!spec.get-version()")
     }
 
     method is-git-repository() {

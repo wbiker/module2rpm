@@ -57,4 +57,5 @@ find %{buildroot}/%{_datadir}/perl6/vendor/bin/ -type f -exec sed -i -e '1s:!/us
 %doc <.readme>
 <.license_file>
 %{_datadir}/perl6/vendor
+
 %changelog
