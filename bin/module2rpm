@@ -78,7 +78,7 @@ multi MAIN(:$file!, Bool :$debug, Bool :$dryrun) {
         try {
             $package.Download();
 
-            CATCH { default { $log.info($_); next; }}
+            CATCH { default { $log.info($_.gist); next; }}
         }
         $log.info("{$package.spec.get-name()}: Write spec file...");
         $package.write-spec-file();
