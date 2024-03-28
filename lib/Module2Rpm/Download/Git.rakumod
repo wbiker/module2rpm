@@ -24,7 +24,7 @@ class Module2Rpm::Download::Git does Module2Rpm::Role::Download {
         $!log.debug("Clone $url");
         die "$path already exists and is not empty" if $path.e and $path.dir.elems > 2;
 
-        my $proc = run <git clone>, $url, $path.absolute, :out, :merge;
+        my $proc = run <git clone>, $url.subst(/^"git://"/, "https://"), $path.absolute, :out, :merge;
         die "Could not clone $url: {$proc.out.slurp(:close)}" if $proc.exitcode;
     }
 }

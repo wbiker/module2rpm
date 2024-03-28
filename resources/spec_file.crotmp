@@ -31,12 +31,17 @@ BuildRequires:  fdupes
 <@provides>
 <&HTML-AND-JAVASCRIPT($_)>
 </@>
+<.obsoletes>
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+
 %global debug_package %{nil}
+
 %description
 <.summary>
 %prep
+
 %setup -q
+
 %build
 <?.build-file>
 <&HTML-AND-JAVASCRIPT(.build-file)>
@@ -51,9 +56,11 @@ RAKUDO_MODULE_DEBUG=1 RAKUDO_PRECOMP_VERBOSE=1 RAKUDO_RERESOLVE_DEPENDENCIES=0 r
 rm -f %{buildroot}%{_datadir}/perl6/vendor/bin/*-j
 rm -f %{buildroot}%{_datadir}/perl6/vendor/bin/*-js
 find %{buildroot}/%{_datadir}/perl6/vendor/bin/ -type f -exec sed -i -e '1s:!/usr/bin/env :!/usr/bin/:' '{}' \;
+
 %files
 %defattr(-,root,root)
 %doc <.readme>
 <.license_file>
 %{_datadir}/perl6/vendor
+
 %changelog

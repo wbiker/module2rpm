@@ -78,7 +78,7 @@ multi MAIN(:$file!, Bool :$debug, Bool :$dryrun) {
         try {
             $package.Download();
 
-            CATCH { default { $log.info($_); next; }}
+            CATCH { default { $log.info($_.gist); next; }}
         }
         $log.info("{$package.spec.get-name()}: Write spec file...");
         $package.write-spec-file();
@@ -102,7 +102,7 @@ multi MAIN(:$module!, Bool :$debug, Bool :$dryrun, :$dir) {
     my $package = Module2Rpm::Package.new(spec => $spec, path => $destination-path);
 
     $log.info("Download module source...");
-    $dir.IO.mkdir unless $dir.IO.e;
+    $dir.IO.mkdir if $dir and not $dir.IO.e;
     $package.Download($dir);
 
     $log.info("Write spec file...");

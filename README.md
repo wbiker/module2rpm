@@ -10,7 +10,7 @@ SYNOPSIS
     module2rpm --module=Module::Name
 
     # Download the source, write the spec file and upload them to OBS for each line in a file.
-    module2rm --file=filePath
+    module2rpm --file=filePath
 
     # Creates the spec and tar file with the content of the current working directory.
     module2rpm .

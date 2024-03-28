@@ -7,6 +7,7 @@ use Module2Rpm::Cro::Client;
 use Module2Rpm::Spec;
 use Module2Rpm::Package;
 use Module2Rpm::Internet::LWP;
+use System::Query;
 
 =begin pod
 
@@ -57,7 +58,7 @@ class Module2Rpm::Helper {
         for @!metadata-sources -> $url {
             $!log.debug("Fetch $url");
             my $json = $!client.get($url);
-            my $obj = from-json($json);
+            my $obj = system-collapse(from-json($json));
             @all-metadata-unfiltered.append: $obj.flat;
         }
 
@@ -87,7 +88,7 @@ class Module2Rpm::Helper {
 
             if self.is-meta-url($line) {
                 say "Download metadata: '$line'";
-                my $metadata = from-json($!client.get($line));
+                my $metadata = system-collapse(from-json($!client.get($line)));
                 my $spec = Module2Rpm::Spec.new(metadata => $metadata);
                 my $package = Module2Rpm::Package.new(spec => $spec, path => $path);
                 @packages.push: $package;

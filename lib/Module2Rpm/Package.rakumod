@@ -27,13 +27,13 @@ class Module2Rpm::Package {
     #| The path where the module source tarball and spec file are created.
     has IO::Path $.path;
 
-    #| Name of the module with the pattern: perl6-<module name with :: replaced by ->.
+    #| Name of the module with the pattern: raku-<module name with :: replaced by ->.
     has Str $.module-name;
 
-    #| Module name with version: perl6-<module-name>-<version>
+    #| Module name with version: raku-<module-name>-<version>
     has Str $.module-name-with-version;
 
-    #| The tarball file name with the pattern: perl6-<module name>-<version>.tar.xz.
+    #| The tarball file name with the pattern: raku-<module name>-<version>.tar.xz.
     has Str $.tar-name;
 
     #| The source url found in the metadata.
@@ -42,11 +42,17 @@ class Module2Rpm::Package {
     #| The spec file name.
     has Str $.spec-file-name;
 
+    #| The changes file name.
+    has Str $.changes-file-name;
+
     #| Path of the local tar archive.
     has IO::Path $.tar-archive-path;
 
     #| Path of the local spec file.
     has IO::Path $.spec-file-path;
+
+    #| Path of the local changes file.
+    has IO::Path $.changes-file-path;
 
     #| The readme file of the package.
     has IO::Path $.readme-file;
@@ -85,6 +91,8 @@ class Module2Rpm::Package {
 
         $!spec-file-name = $!module-name ~ ".spec";
         $!spec-file-path = $!path.add($!spec-file-name);
+        $!changes-file-name = $!module-name ~ ".changes";
+        $!changes-file-path = $!path.add($!changes-file-name);
         $!tar-archive-path = $!path.add($!tar-name);
 
         $!client = $client;
@@ -135,7 +143,7 @@ class Module2Rpm::Package {
         $downloaded-item.spurt($file-content);
         $!tar.Extract($downloaded-item);
 
-        # Rename the root folder of the extracted archive to: perl6-<module-name>.
+        # Rename the root folder of the extracted archive to: raku-<module-name>.
         my @top-level-dirs = $download-dir.dir.grep(* ~~ :d);
         die "Too many top level directories: @top-level-dirs" if @top-level-dirs.elems != 1;
         my $module-name-path = $download-dir.add($!module-name-with-version);
@@ -150,7 +158,7 @@ class Module2Rpm::Package {
         # Look for a Build.pm, Build.pm6 or Build.rakumod file to add build command to spec file.
         self.set-build-file($module-name-path);
 
-        # Compress sources with renamed folder as perl6-<module name>-<version>.tar.xz.
+        # Compress sources with renamed folder as raku-<module name>-<version>.tar.xz.
         self.compress($module-name-path);
     }
 
@@ -163,6 +171,10 @@ class Module2Rpm::Package {
         );
         $!spec-file-path.spurt($spec-file-content);
         $!log.debug($spec-file-content);
+
+        # The changes file is technically just a swapped out part of the spec file, so
+        # it's not too bad to update it as part of writing the spec file
+        run('/usr/bin/osc', 'vc', $!changes-file-path, '-m', "Update to version $!spec.get-version()")
     }
 
     method is-git-repository() {
