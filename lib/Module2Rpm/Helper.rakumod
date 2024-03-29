@@ -4,7 +4,7 @@ use Logger;
 
 use Module2Rpm::Role::Download;
 use Module2Rpm::Cro::Client;
-use Module2Rpm::Spec;
+use Module2Rpm::Metadata;
 use Module2Rpm::Package;
 use Module2Rpm::Internet::LWP;
 use System::Query;
@@ -88,9 +88,10 @@ class Module2Rpm::Helper {
 
             if self.is-meta-url($line) {
                 say "Download metadata: '$line'";
-                my $metadata = system-collapse(from-json($!client.get($line)));
-                my $spec = Module2Rpm::Spec.new(metadata => $metadata);
-                my $package = Module2Rpm::Package.new(spec => $spec, path => $path);
+                my $metadata = Module2Rpm::Metadata.new(
+                    metadata => system-collapse(from-json($!client.get($line)))
+                );
+                my $package = Module2Rpm::Package.new(:$metadata, :$path);
                 @packages.push: $package;
                 next;
             }
@@ -102,8 +103,8 @@ class Module2Rpm::Helper {
                     next;
                 }
 
-                my $spec = Module2Rpm::Spec.new(metadata => $module-metadata);
-                my $package = Module2Rpm::Package.new(spec => $spec, path => $path);
+                my $metadata = Module2Rpm::Metadata.new(metadata => $module-metadata);
+                my $package = Module2Rpm::Package.new(metadata => $metadata, path => $path);
                 @packages.push: $package;
                 next;
             }

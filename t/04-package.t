@@ -3,24 +3,25 @@ use File::Temp;
 use Test::Mock;
 use lib './lib';
 
+use Module2Rpm::Metadata;
 use Module2Rpm::Package;
 use Module2Rpm::Spec;
 
 my $module-name-prefix = "raku-";
 
-my $metadata = {
+my $metadata = Module2Rpm::Metadata.new(:metadata({
     name => 'Module::Name',
     version => '1.1.1',
     source-url => 'http://www.cpan.org/authors/id/A/AR/ARNE/Perl6/p6-time-repeat-0.0101.tar.gz',
-}
+}));
 
 my $spec = Module2Rpm::Spec.new(metadata => $metadata);
 
 my $tempdir = tempdir().IO;
 my $package;
-lives-ok {$package = Module2Rpm::Package.new(spec => $spec, path => $tempdir)}, "Creating Package object works without exception";
+lives-ok {$package = Module2Rpm::Package.new(metadata => $metadata, path => $tempdir)}, "Creating Package object works without exception";
 
-is-deeply $package.spec, $spec, "Metadata are the expected one";
+is-deeply $package.metadata, $metadata, "Metadata are the expected one";
 is $package.module-name, "{$module-name-prefix}Module-Name", "Module name is the expected one";
 is $package.path.absolute, $tempdir.add($package.module-name), "Package directory path is the expected one";
 ok $package.path.e, "Package directory was created";
@@ -42,7 +43,7 @@ is $package.tar.WHAT, Module2Rpm::Archive::Tar.WHAT, "Proper Tar default class i
         Compress => -> $path, $name { my $r = $path.parent.add("test_file.tar.xz"); $r.spurt(""); $r },
         Extract => -> $url { $url.parent.add('test-directory').IO.mkdir },
     };
-    my $package = Module2Rpm::Package.new(spec => $spec, path => $tempdir, client => $client, git => $git_mock, tar => $tar_mock);
+    my $package = Module2Rpm::Package.new(metadata => $metadata, path => $tempdir, client => $client, git => $git_mock, tar => $tar_mock);
 
     lives-ok { $package.Download() }, "Download does not die";
 }
@@ -53,7 +54,7 @@ is $package.tar.WHAT, Module2Rpm::Archive::Tar.WHAT, "Proper Tar default class i
 
     my $git_mock = mocked Module2Rpm::Download::Git;
     my $tar_mock = mocked Module2Rpm::Archive::Tar;
-    my $package = Module2Rpm::Package.new(spec => $spec, path => $tempdir, client => $client, git => $git_mock, tar => $tar_mock);
+    my $package = Module2Rpm::Package.new(metadata => $metadata, path => $tempdir, client => $client, git => $git_mock, tar => $tar_mock);
     throws-like {$package.Download()}, X::AdHoc, payload => /'Test exception'/, "Package dies when something goes wrong";
 }
 

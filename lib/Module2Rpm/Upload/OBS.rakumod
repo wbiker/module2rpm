@@ -41,7 +41,7 @@ class Module2Rpm::Upload::OBS {
         # <status code="validation_failed">
         #  <summary>package validation error: 3:36: FATAL: xmlParseEntityRef: no name</summary>
         #</status>
-        my $description = $package.spec.get-summary();
+        my $description = $package.metadata.get-summary();
         $description ~~ s:g/<-[\s \w]>+//;
 
         my $xml = qq:to/END/;

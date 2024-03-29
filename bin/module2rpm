@@ -9,7 +9,7 @@ use lib $*PROGRAM.parent.sibling('lib');
 
 use Module2Rpm::Download::Git;
 use Module2Rpm::Archive::Tar;
-use Module2Rpm::Spec;
+use Module2Rpm::Metadata;
 use Module2Rpm::Package;
 use Module2Rpm::Helper;
 use Module2Rpm::Upload::OBS;
@@ -25,7 +25,7 @@ Logger.add($log);
 
 my $helper = Module2Rpm::Helper.new;
 
-# Place where all source archives and spec files will be saved before uploading.
+# Place where all source archives and build files will be saved before uploading.
 my $destination-path = tempdir().IO;
 
 # Load config from home folder: HOME/.config/module2rpm/default.json
@@ -67,29 +67,29 @@ multi MAIN(:h(:$help)) {
     help();
 }
 
-#| Downloads, creates spec files and uploads them to OBS for all modules given in a file.
+#| Downloads, creates build files and uploads them to OBS for all modules given in a file.
 multi MAIN(:$file!, Bool :$debug, Bool :$dryrun) {
     $log.level = Logger::DEBUG if $debug;
     $log.info("Parse download file: $file");
     my @packages = $helper.create-packages(path => $destination-path, file => $file.IO);
 
     for @packages -> $package {
-        $log.info("{$package.spec.get-name()}: Download source...");
+        $log.info("{$package.get-name()}: Download source...");
         try {
             $package.Download();
 
             CATCH { default { $log.info($_.gist); next; }}
         }
-        $log.info("{$package.spec.get-name()}: Write spec file...");
-        $package.write-spec-file();
+        $log.info("{$package.get-name()}: Write build files...");
+        $package.write-build-files();
 
         my $obs = Module2Rpm::Upload::OBS.new(client => $client, project => $obs-project);
-        $log.info("Upload {$package.spec.get-name()} to OBS");
+        $log.info("Upload {$package.get-name()} to OBS");
         $obs.upload-files(package => $package) unless $dryrun;
     }
 }
 
-#| Downloads, creates spec file and uploads to OBS a given module.
+#| Downloads, creates build files and uploads to OBS a given module.
 multi MAIN(:$module!, Bool :$debug, Bool :$dryrun, :$dir) {
     $log.level = Logger::DEBUG if $debug;
     $log.info("Fetch module metadata...");
@@ -98,15 +98,15 @@ multi MAIN(:$module!, Bool :$debug, Bool :$dryrun, :$dir) {
     my $module-metadata = %all-metadata{$module};
     die "Did not find metadata for module '$module'" unless $module-metadata;
 
-    my $spec = Module2Rpm::Spec.new(metadata => $module-metadata);
-    my $package = Module2Rpm::Package.new(spec => $spec, path => $destination-path);
+    my $metadata = Module2Rpm::Metadata.new(metadata => $module-metadata);
+    my $package = Module2Rpm::Package.new(metadata => $metadata, path => $destination-path);
 
     $log.info("Download module source...");
     $dir.IO.mkdir if $dir and not $dir.IO.e;
     $package.Download($dir);
 
-    $log.info("Write spec file...");
-    $package.write-spec-file();
+    $log.info("Write build files...");
+    $package.write-build-files();
 
     unless $dryrun {
         my $obs = Module2Rpm::Upload::OBS.new(client => $client, project => $obs-project);
@@ -117,7 +117,7 @@ multi MAIN(:$module!, Bool :$debug, Bool :$dryrun, :$dir) {
     $log.info("Done");
 }
 
-#| Creates spec file and uploads to OBS in the current working directory
+#| Creates build files and uploads to OBS in the current working directory
 multi MAIN('.', Bool :$debug, Bool :$dryrun) {
     $log.level = Logger::DEBUG if $debug;
     if not 'META6.json'.IO.e {
@@ -126,15 +126,15 @@ multi MAIN('.', Bool :$debug, Bool :$dryrun) {
 
     my $module-metadata = from-json('META6.json'.IO.slurp);
 
-    my $spec = Module2Rpm::Spec.new(metadata => $module-metadata);
-    my $package = Module2Rpm::Package.new(spec => $spec, path => $destination-path);
+    my $metadata = Module2Rpm::Metadata.new(metadata => $module-metadata);
+    my $package = Module2Rpm::Package.new(metadata => $metadata, path => $destination-path);
 
     $package.set-readme($*CWD);
     $package.set-license-file($*CWD);
     $package.set-build-file($*CWD);
 
-    $log.info("Write spec file...");
-    $package.write-spec-file();
+    $log.info("Write build files...");
+    $package.write-build-files();
 
     # Before creating the tar archive, copy the current working directory content to a new
     # folder with the name and version of the module. Otherwise the tar archive content is
@@ -145,7 +145,7 @@ multi MAIN('.', Bool :$debug, Bool :$dryrun) {
     $dest-tmp-dir.mkdir;
 
     $log.debug("Copy files to '$dest-tmp-dir'");
-    my @provides = $spec.metadata<provides>.values;
+    my @provides = $metadata.metadata<provides>.values;
     @provides.push: 'META6.json';
     @provides.push: 'LICENSE';
     recursive-copy(@provides, $dest-tmp-dir);
@@ -183,21 +183,21 @@ sub help() {
     say q:to/HELP/;
     module2rpm --module=module::name | --file=filePath | '.' [--debug]
 
-    This program downloads the source of a Raku module, writes the spec file
+    This program downloads the source of a Raku module, writes the build files
     with the metadata and uploads both files to OBS.
 
     OPTIONS:
         --module=module::name   Looks for the module::name in the Raku
                                 ecosystem to get the metadata of it. Then write
-                                the spec file and uploads the module source and
-                                spec file to OBS.
+                                the build files and uploads the module source and
+                                build files to OBS.
         --file=filePath         Expect a file with either Module::Names or
                                 metadata urls. Download the sources and
-                                uploaded them together with the spec files to
+                                uploaded them together with the build files to
                                 OBS.
-        '.'                     Creates the spec file and tar archive with the current
+        '.'                     Creates the build files and tar archive with the current
                                 working directory.
         --debug                 Sets DEBUG logging level
-        --dryrun                Creates spec and tar file but do not upload it to OBS.
+        --dryrun                Creates build files and tar file but do not upload it to OBS.
     HELP
 }
