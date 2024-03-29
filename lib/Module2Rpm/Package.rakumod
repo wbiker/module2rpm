@@ -181,6 +181,12 @@ class Module2Rpm::Package {
         run('/usr/bin/osc', 'vc', $!changes-file-path, '-m', "Update to version $!metadata.get-version()")
     }
 
+    method source-files() {
+        $.tar-name,
+        $.spec-file-name,
+        $.changes-file-name,
+    }
+
     method is-git-repository() {
         return ($!source-url.starts-with('git://') or $!source-url.ends-with('.git'));
     }
