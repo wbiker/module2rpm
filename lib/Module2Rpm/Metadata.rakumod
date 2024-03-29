@@ -142,6 +142,8 @@ class Module2Rpm::Metadata {
 
         $!log.debug("Found adverbs for module: " ~ %adverbs.raku);
 
+        return unless $requires; # No name, no real dependency
+
         # Ignoring certain modules, otherwise OBS would complain about missing requirements.
         return if self.is-ignored($requires);
 
