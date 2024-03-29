@@ -1,6 +1,7 @@
 use File::Temp;
 use Logger;
 
+use Module2Rpm::Deb;
 use Module2Rpm::Spec;
 use Module2Rpm::Archive::Tar;
 use Module2Rpm::Download::Git;
@@ -178,13 +179,19 @@ class Module2Rpm::Package {
 
         # The changes file is technically just a swapped out part of the spec file, so
         # it's not too bad to update it as part of writing the spec file
-        run('/usr/bin/osc', 'vc', $!changes-file-path, '-m', "Update to version $!metadata.get-version()")
+        run('/usr/bin/osc', 'vc', $!changes-file-path, '-m', "Update to version $!metadata.get-version()");
+
+        Module2Rpm::Deb.new(:$!metadata).write-build-files($!path, :build-file($!build-file.IO));
     }
 
     method source-files() {
         $.tar-name,
         $.spec-file-name,
         $.changes-file-name,
+        'debian.control',
+        'debian.changelog',
+        'debian.rules',
+        $.metadata.get-package-name ~ '.dsc',
     }
 
     method is-git-repository() {

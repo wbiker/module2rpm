@@ -76,7 +76,7 @@ class Module2Rpm::Spec {
                     return "perl";
                 }
 
-                my $req ~= '%{_bindir}/' ~ $requires.name;
+                my $req = '%{_bindir}/' ~ $requires.name;
                 $!log.debug("Bin requires: $req");
 
                 return $req;
