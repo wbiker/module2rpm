@@ -1,9 +1,11 @@
 use File::Temp;
 use Logger;
 
+use Module2Rpm::Deb;
 use Module2Rpm::Spec;
 use Module2Rpm::Archive::Tar;
 use Module2Rpm::Download::Git;
+use Module2Rpm::Metadata;
 use Module2Rpm::Role::Download;
 use Module2Rpm::Role::Internet;
 use Module2Rpm::Cro::Client;
@@ -21,8 +23,10 @@ class Module2Rpm::Package {
     #| Logging
     has $!log = Logger.get;
 
+    has Module2Rpm::Metadata $.metadata is required;
+
     #| Class that handles spec file parameter.
-    has Module2Rpm::Spec $.spec is required;
+    has Module2Rpm::Spec $!spec;
 
     #| The path where the module source tarball and spec file are created.
     has IO::Path $.path;
@@ -72,22 +76,23 @@ class Module2Rpm::Package {
     #| Class used to compress, extract and list with Tar.
     has Module2Rpm::Role::Archive $.tar;
 
-    submethod BUILD(Module2Rpm::Spec :$spec,
+    submethod BUILD(Module2Rpm::Metadata :$metadata!,
             IO::Path :$path,
             Module2Rpm::Role::Internet :$client = Module2Rpm::Cro::Client.new,
             Module2Rpm::Role::Download :$git = Module2Rpm::Download::Git.new,
             Module2Rpm::Role::Archive :$tar = Module2Rpm::Archive::Tar.new) {
 
-        $!spec = $spec;
+        $!metadata = $metadata;
+        $!spec = Module2Rpm::Spec.new(:$metadata);
         $path.mkdir unless $path.e;
 
-        $!module-name = $spec.get-name();
-        $!module-name-with-version = $!module-name ~ "-" ~ $!spec.get-version;
+        $!module-name = $metadata.get-package-name();
+        $!module-name-with-version = $!module-name ~ "-" ~ $!metadata.get-version;
         $!path = $path.add($!module-name);
         $!path.mkdir unless $!path.e;
 
-        $!tar-name = "{$!module-name}-{$!spec.get-version()}.tar.xz";
-        $!source-url = $!spec.get-source-url();
+        $!tar-name = "{$!module-name}-{$!metadata.get-version()}.tar.xz";
+        $!source-url = $!metadata.get-source-url();
 
         $!spec-file-name = $!module-name ~ ".spec";
         $!spec-file-path = $!path.add($!spec-file-name);
@@ -163,7 +168,7 @@ class Module2Rpm::Package {
     }
 
     #| Writes the spec file in the given path.
-    method write-spec-file() {
+    method write-build-files() {
         my $spec-file-content = $!spec.get-spec-file(
             readme-file  => $!readme-file.IO,
             license-file => $!license-file.IO,
@@ -174,11 +179,27 @@ class Module2Rpm::Package {
 
         # The changes file is technically just a swapped out part of the spec file, so
         # it's not too bad to update it as part of writing the spec file
-        run('/usr/bin/osc', 'vc', $!changes-file-path, '-m', "Update to version $!spec.get-version()")
+        run('/usr/bin/osc', 'vc', $!changes-file-path, '-m', "Update to version $!metadata.get-version()");
+
+        Module2Rpm::Deb.new(:$!metadata).write-build-files($!path, :build-file($!build-file.IO));
+    }
+
+    method source-files() {
+        $.tar-name,
+        $.spec-file-name,
+        $.changes-file-name,
+        'debian.control',
+        'debian.changelog',
+        'debian.rules',
+        $.metadata.get-package-name ~ '.dsc',
     }
 
     method is-git-repository() {
         return ($!source-url.starts-with('git://') or $!source-url.ends-with('.git'));
+    }
+
+    method get-name( --> Str) {
+        $!metadata.get-package-name
     }
 
     method get-readme(IO::Path $path) {

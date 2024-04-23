@@ -8,29 +8,34 @@ use Module2Rpm::Spec;
 dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
 
 {
-    my $spec = Module2Rpm::Spec.new(metadata => {});
-    dies-ok { $spec.get-name() }, "Get-name dies without module name";
+    my $metadata = Module2Rpm::Metadata.new(metadata => {});
+    dies-ok { $metadata.get-name() }, "Get-name dies without module name";
 }
 
 {
-    my $spec = Module2Rpm::Spec.new(metadata => { name => "Module::Name" });
-    is $spec.get-name(), "raku-Module-Name", "Get-Name returns expected name";
+    my $metadata = Module2Rpm::Metadata.new(metadata => { name => "Module::Name" });
+    is $metadata.get-name(), "Module::Name", "Get-name returns expected name";
 }
 
 {
-    my $spec = Module2Rpm::Spec.new(metadata => {
+    my $metadata = Module2Rpm::Metadata.new(metadata => { name => "Module::Name" });
+    is $metadata.get-package-name(), "raku-Module-Name", "Get-package-name returns expected name";
+}
+
+{
+    my $spec = Module2Rpm::Spec.new(metadata => Module2Rpm::Metadata.new(:metadata({
         name => 'ModuleName',
         provides => { 'ModuleName' => 'lib/ModuleName' }
-    });
+    })));
     is $spec.provides(), "Provides:       raku(ModuleName)\nProvides:       perl6(ModuleName)", "Provides returns proper string";
 }
 
 {
-    my $spec = Module2Rpm::Spec.new(metadata => {
+    my $spec = Module2Rpm::Spec.new(metadata => Module2Rpm::Metadata.new(:metadata({
         name => 'ModuleName',
         provides => {   'ModuleName' => 'lib/ModuleName',
                         'ModuleName::Name' => 'lib/ModuleName/Name' }
-    });
+    })));
     is $spec.provides(), chomp(q:to/SPEC/), "Provides returns proper string";
         Provides:       raku(ModuleName)
         Provides:       perl6(ModuleName)
@@ -40,21 +45,23 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
 }
 
 {
-    my $spec = Module2Rpm::Spec.new(metadata => {
+    my $spec = Module2Rpm::Spec.new(metadata => Module2Rpm::Metadata.new(:metadata({
         name => 'ModuleName',
-    });
+    })));
     is $spec.obsoletes(), chomp(q:to/SPEC/), "Obsoletes the Perl6 package";
         Obsoletes:      perl6-ModuleName
         SPEC
 }
 
 {
-    my $spec = Module2Rpm::Spec.new(metadata => {});
+    my $spec = Module2Rpm::Spec.new(metadata => Module2Rpm::Metadata.new(:metadata({})));
     is $spec.requires(), "Requires:       raku >= 2016.12", "Requires returns one dependency";
 }
 
 {
-    my $spec = Module2Rpm::Spec.new(metadata => { depends => ['Dependency', 'Test::Assertion']});
+    my $spec = Module2Rpm::Spec.new(metadata => Module2Rpm::Metadata.new(:metadata({
+        depends => ['Dependency', 'Test::Assertion']
+    })));
 
     my @expected =
         "Requires:       raku >= 2016.12",
@@ -64,7 +71,9 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
 }
 
 {
-    my $spec = Module2Rpm::Spec.new(metadata => { depends => ["Method::Also", "Test"] });
+    my $spec = Module2Rpm::Spec.new(metadata => Module2Rpm::Metadata.new(:metadata({
+        depends => ["Method::Also", "Test"]
+    })));
 
     my @expected =
         "Requires:       raku >= 2016.12",
@@ -73,7 +82,9 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
 }
 
 {
-    my $spec = Module2Rpm::Spec.new(metadata => { depends => { runtime => { "requires" => ["Cairo","Color"] } } });
+    my $spec = Module2Rpm::Spec.new(metadata => Module2Rpm::Metadata.new(:metadata({
+        depends => { runtime => { "requires" => ["Cairo","Color"] } }
+    })));
 
     my @expected =
         'Requires:       raku >= 2016.12',
@@ -83,12 +94,12 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
 }
 
 {
-    my $spec = Module2Rpm::Spec.new(metadata => {
+    my $spec = Module2Rpm::Spec.new(metadata => Module2Rpm::Metadata.new(:metadata({
         depends => {
             runtime => { "requires" => ["Cairo"] },
             test => { requires => ["testModule"] }
         }
-    });
+    })));
 
     my @expected =
         'Requires:       raku >= 2016.12',
@@ -101,14 +112,14 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
         find-rpm => 'libgpgme.so.11()(64bit)';
     };
 
-    my $spec = Module2Rpm::Spec.new(metadata => {
+    my $spec = Module2Rpm::Spec.new(metadata => Module2Rpm::Metadata.new(:metadata({
             depends => {
                 runtime => {
                     "requires" => [ "NativeLibs:ver<0.0.7+>:auth<github:salortiz>",
                                     "gpgme:from<native>:ver<11>"]
                 }
             },
-        },
+        })),
         find-rpm => $find-rpm-mock,
     );
 
@@ -124,7 +135,7 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
 }
 
 {
-    my $spec = Module2Rpm::Spec.new(metadata => {
+    my $spec = Module2Rpm::Spec.new(metadata => Module2Rpm::Metadata.new(:metadata({
         depends => {
             runtime => {
                 "requires" => [
@@ -136,7 +147,7 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
                 ]
             }
         }
-    });
+    })));
 
     my @expected =
         'Requires:       raku >= 2016.12',
@@ -146,7 +157,7 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
 }
 
 {
-    my $spec = Module2Rpm::Spec.new(metadata => {});
+    my $spec = Module2Rpm::Spec.new(metadata => Module2Rpm::Metadata.new(:metadata({})));
 
     my @expected =
         'BuildRequires:  rakudo >= 2017.04.2';
@@ -154,7 +165,9 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
 }
 
 {
-    my $spec = Module2Rpm::Spec.new(metadata => {build-depends =>  ["LibraryMake","Pod::To::Markdown"]});
+    my $spec = Module2Rpm::Spec.new(metadata => Module2Rpm::Metadata.new(:metadata({
+        build-depends =>  ["LibraryMake","Pod::To::Markdown"]
+    })));
 
     my @expected =
         'BuildRequires:  rakudo >= 2017.04.2',
@@ -164,10 +177,10 @@ dies-ok { Module2Rpm::Spec.new }, "Dies without metadata";
 }
 
 {
-    my $spec = Module2Rpm::Spec.new(metadata => {
+    my $spec = Module2Rpm::Spec.new(metadata => Module2Rpm::Metadata.new(:metadata({
         build-depends =>  ["LibraryMake"],
         depends => {build => {"requires" => ["Pod::To::Markdown"]}}
-    });
+    })));
 
     my @expected =
         'BuildRequires:  rakudo >= 2017.04.2',
@@ -199,7 +212,7 @@ my $meta = {
    "version" => "0.0.2"
 }
 
-my $spec = Module2Rpm::Spec.new(metadata => $meta);
+my $spec = Module2Rpm::Spec.new(metadata => Module2Rpm::Metadata.new(:metadata($meta)));
 my $spec-file-content = $spec.get-spec-file();
 
 like $spec-file-content, /'Source0:' \s+ 'raku-IO-Prompt-0.0.2.tar.xz'/, "Source0 found in spec file";

@@ -6,6 +6,7 @@ use lib './lib';
 
 use Cro::HTTP::Client;
 
+use Module2Rpm::Metadata;
 use Module2Rpm::Upload::OBS;
 use Module2Rpm::Spec;
 use Module2Rpm::Package;
@@ -56,6 +57,6 @@ check-mock($test_client,
 done-testing;
 
 sub create-test-package(:$meta, :$path) {
-    my $s = Module2Rpm::Spec.new(metadata => $meta);
-    return Module2Rpm::Package.new(spec =>  $s, :$path);
+    my $m = Module2Rpm::Metadata.new(:metadata($meta));
+    return Module2Rpm::Package.new(metadata => $m, :$path);
 }
